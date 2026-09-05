@@ -1,0 +1,145 @@
+{
+  "entities": {
+    "PatientProfile": {
+      "title": "PatientProfile",
+      "description": "HIPAA-compliant baseline clinical profile of the patient (vitals targets, chronic conditions, allergies, active prescriptions)",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique patient identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Patient's preferred name or identifier"
+        },
+        "birthYear": {
+          "type": "number",
+          "description": "Year of birth for clinical age calculations"
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["female", "male", "other"]
+        },
+        "primaryCaregiverUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the managing caregiver"
+        },
+        "chronicConditions": {
+          "type": "array",
+          "description": "List of chronic diagnoses with diagnosis year"
+        },
+        "allergies": {
+          "type": "array",
+          "description": "Known drug and environmental allergies with severity ratings"
+        },
+        "currentMedications": {
+          "type": "array",
+          "description": "Active prescription regimens, timing, and dosages"
+        },
+        "baselineVitals": {
+          "type": "object",
+          "description": "Target BP ranges and blood glucose baseline limits"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of profile update"
+        }
+      },
+      "required": ["id", "name", "birthYear", "primaryCaregiverUid", "updatedAt"]
+    },
+    "ClinicalEntry": {
+      "title": "ClinicalEntry",
+      "description": "Structured multi-turn conversational scribe entry with SOAP notes, extracted vitals, safety alerts, and doctor consult handover points",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique entry identifier"
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Associated patient profile ID"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        },
+        "authorUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of author"
+        },
+        "authorRole": {
+          "type": "string",
+          "enum": ["caregiver", "doctor"]
+        },
+        "conversationTranscript": {
+          "type": "array",
+          "description": "Caregiver-AI multi-turn conversational dialog"
+        },
+        "groundedAnalysis": {
+          "type": "object",
+          "description": "Grounded medical checks (drug interactions, condition relevance, adherence flags)"
+        },
+        "extractedMetrics": {
+          "type": "object",
+          "description": "Extracted numerical vitals (blood pressure, glucose, temperature)"
+        },
+        "clinicalSoap": {
+          "type": "object",
+          "description": "Structured Subjective, Objective, Assessment, Plan notes"
+        },
+        "safetyAlert": {
+          "type": "object",
+          "description": "Clinical safety triage alert level and instructions"
+        },
+        "googleTasksDirectives": {
+          "type": "array",
+          "description": "Actionable care tasks parsed from conversation"
+        },
+        "doctorConsultBullet": {
+          "type": "string",
+          "description": "Synthesized 1-sentence bullet for doctor consultation"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "createdAt",
+        "authorUid",
+        "clinicalSoap",
+        "doctorConsultBullet"
+      ]
+    },
+    "JournalInteraction": {
+      "title": "JournalInteraction",
+      "description": "Legacy multi-turn journal reflection entry with Gemini Flash",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "mode": { "type": "string" },
+        "turns": { "type": "array" },
+        "summary": { "type": "string" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/patient": {
+      "schema": "PatientProfile",
+      "description": "User-isolated patient clinical profile and baseline vitals"
+    },
+    "/users/{userId}/clinicalEntries/{entryId}": {
+      "schema": "ClinicalEntry",
+      "description": "User-isolated conversational scribe logs, SOAP notes, and safety alerts"
+    },
+    "/users/{userId}/interactions/{interactionId}": {
+      "schema": "JournalInteraction",
+      "description": "Legacy journal entries"
+    }
+  }
+}

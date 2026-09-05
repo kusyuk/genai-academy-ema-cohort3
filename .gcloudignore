@@ -1,0 +1,15 @@
+.gcloudignore
+.git
+.gitignore
+
+# Build & Dependency Artifacts
+node_modules/
+.angular/
+dist/
+
+# Documentation & Local Notes
+documentations/
+memory-bank/
+.DS_Store
+.env
+.env.local

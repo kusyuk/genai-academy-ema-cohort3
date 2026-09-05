@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ema-clinical-vault",
+      "rules": "firestore.rules"
+    }
+  ]
+}

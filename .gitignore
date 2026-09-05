@@ -1,0 +1,13 @@
+# Node & Angular
+node_modules/
+dist/
+.angular/
+
+# System
+.DS_Store
+/documentations
+/memory-bank
+
+# Environment
+.env
+.env.local
