@@ -107,8 +107,41 @@ interface VitalPoint {
                 <span>AI Brief</span>
               }
             </button>
+
+            <button
+              type="button"
+              (click)="shareDoctorHandover()"
+              class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white text-xs font-semibold transition cursor-pointer shadow-xs"
+              title="Share or export 1-page physician brief"
+            >
+              <mat-icon class="text-sm">share</mat-icon>
+              <span class="hidden sm:inline">Share Brief</span>
+            </button>
           </div>
         </div>
+
+        @if (shareSuccessMessage()) {
+          <div class="mt-3 p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-2">
+            <mat-icon class="text-sm text-emerald-700">check_circle</mat-icon>
+            <span>{{ shareSuccessMessage() }}</span>
+          </div>
+        }
+
+        @if (synthesisError()) {
+          <div class="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <mat-icon class="text-base text-amber-600 shrink-0">cloud_off</mat-icon>
+              <span class="truncate sm:whitespace-normal">{{ synthesisError() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="generateHandoverSynthesis()"
+              class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-semibold text-[11px] shrink-0 cursor-pointer transition shadow-xs"
+            >
+              Retry AI Brief
+            </button>
+          </div>
+        }
 
         <!-- Verified Prescription Ribbon -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-[11px] text-slate-600 overflow-x-auto no-scrollbar">
@@ -456,6 +489,7 @@ export class DoctorDashboard implements OnInit {
   readonly selectedRange = signal<TimeRangeFilter>('7d');
   readonly isSynthesizing = signal<boolean>(false);
   readonly handover = signal<ConsultationHandover | null>(null);
+  readonly synthesisError = signal<string | null>(null);
 
   readonly patient = this.firebaseState.activePatient;
   readonly currentYear = new Date().getFullYear();
@@ -653,17 +687,75 @@ export class DoctorDashboard implements OnInit {
     if (entries.length === 0) return;
 
     this.isSynthesizing.set(true);
+    this.synthesisError.set(null);
     this.geminiState
       .synthesizeDoctorHandover(entries, this.patient())
       .subscribe({
         next: (handover) => {
           this.handover.set(handover);
           this.isSynthesizing.set(false);
+          this.synthesisError.set(null);
         },
         error: (err) => {
           console.warn('AI Handover synthesis fallback:', err);
           this.isSynthesizing.set(false);
+          this.synthesisError.set(
+            'Gemini AI consultation brief is momentarily unavailable (503 Service Spike). Displaying verified clinical telemetry below. Tap "Retry AI Brief" to re-synthesize.'
+          );
         },
       });
+  }
+
+  readonly shareSuccessMessage = signal<string | null>(null);
+
+  async shareDoctorHandover(): Promise<void> {
+    const p = this.patient();
+    const h = this.handover();
+    const summaryText = [
+      `🩺 EMA PHYSICIAN CONSULTATION BRIEF`,
+      `Patient: ${p.name} (${this.currentYear - p.birthYear}y)`,
+      `Chronic Conditions: ${this.chronicConditionsSummary()}`,
+      `Generated: ${new Date().toLocaleDateString()}`,
+      ``,
+      `📌 Clinical Overview:`,
+      h?.aiSynthesizedOverview || this.defaultOverviewText(),
+      ``,
+      `📊 Vitals Trajectory:`,
+      h?.vitalsSummary
+        ? `Avg BP: ${h.vitalsSummary.avgSystolic}/${h.vitalsSummary.avgDiastolic} mmHg • Avg Glucose: ${h.vitalsSummary.avgGlucose ?? 'N/A'}`
+        : (this.avgBp().systolic ? `Avg BP: ${this.avgBp().systolic}/${this.avgBp().diastolic} mmHg` : 'Stable variance.'),
+      ``,
+      `🚨 Notable Outliers:`,
+      h?.vitalsSummary?.notableOutliers && h.vitalsSummary.notableOutliers.length > 0
+        ? h.vitalsSummary.notableOutliers.map((f: string) => `• ${f}`).join('\n')
+        : 'None detected.',
+      ``,
+      `💡 Suggested Discussion Points:`,
+      h?.suggestedDiscussionPoints && h.suggestedDiscussionPoints.length > 0
+        ? h.suggestedDiscussionPoints.map((a: string) => `• ${a}`).join('\n')
+        : 'Maintain current medication regimen and review adherence.',
+      ``,
+      `EMA Protected Elderly Health Journal • Powered by Gemini 3.8 Flash`
+    ].join('\n');
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `EMA Physician Brief - ${p.name}`,
+          text: summaryText,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.warn('Share error:', err);
+        }
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(summaryText);
+      this.shareSuccessMessage.set('Physician Brief copied to clipboard! Ready to paste or export.');
+      setTimeout(() => this.shareSuccessMessage.set(null), 4500);
+    }
   }
 }

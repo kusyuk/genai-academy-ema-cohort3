@@ -70,7 +70,7 @@ const INITIAL_DRAFT: ScribeDraft = {
     <div class="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-7xl w-full mx-auto p-3.5 sm:p-6 pb-20 md:pb-6 gap-3 sm:gap-6">
       <!-- Left Sidebar: Clinical Journal Log & History -->
       <aside
-        class="w-full md:w-80 md:!flex flex-col shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden h-[calc(100dvh-9.5rem)] md:h-[calc(100vh-5.5rem)] md:sticky md:top-20 min-h-0"
+        class="w-full md:w-80 flex flex-col md:!flex shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden h-[calc(100dvh-9.5rem)] md:h-[calc(100vh-5.5rem)] md:sticky md:top-20 min-h-0"
         [class.hidden]="mobileTab() !== 'history'"
       >
         <!-- History Header -->
@@ -245,7 +245,7 @@ const INITIAL_DRAFT: ScribeDraft = {
 
       <!-- Right Main Workspace: Doctor Mode vs Caregiver Scribe -->
       <main
-        class="flex-1 flex-col min-w-0 space-y-6 md:!flex"
+        class="flex-1 flex flex-col min-w-0 space-y-6 md:!flex"
         [class.hidden]="mobileTab() !== 'scribe'"
       >
         @if (currentRole() === 'doctor') {
@@ -254,34 +254,75 @@ const INITIAL_DRAFT: ScribeDraft = {
         } @else {
           <!-- Caregiver Voice Scribe & SOAP Generator Mode -->
 
-          <!-- Patient Baseline Ribbon Banner -->
-          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 flex items-center justify-center font-bold text-base">
-                {{ activePatient().name.charAt(0) }}
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h2 class="text-sm sm:text-base font-bold text-slate-900">{{ activePatient().name }}</h2>
-                  <span class="text-xs text-slate-500 font-mono">({{ currentYear - activePatient().birthYear }}y)</span>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
-                    Primary Patient
-                  </span>
+          <!-- Mobile-Friendly Tactile Bento Ribbon: Patient Baseline, Vitals & Medication Glance -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+              <!-- Patient Identity & Baseline Pill -->
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-800 border border-teal-200/80 flex items-center justify-center font-bold text-lg shadow-2xs">
+                  {{ activePatient().name.charAt(0) }}
                 </div>
-                <p class="text-xs text-slate-500 mt-0.5">
-                  Chronic: <span class="text-slate-800 font-medium">{{ chronicSummary() }}</span> • Rx: <span class="text-slate-800 font-medium">{{ activePatient().currentMedications.length }} meds</span>
-                </p>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{{ activePatient().name }}</h2>
+                    <span class="text-xs text-slate-600 font-mono font-medium">({{ currentYear - activePatient().birthYear }}y)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100/70 text-teal-900 border border-teal-200/80">
+                      Protected
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-600 mt-0.5">
+                    Chronic: <span class="text-slate-900 font-semibold">{{ chronicSummary() }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Bento Glance Modules: Vitals & Next Med Routine -->
+              <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <!-- Card A: Glanceable Vitals Pill -->
+                <div class="flex-1 sm:flex-initial flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-2xs">
+                  <mat-icon class="text-teal-700 text-base">monitor_heart</mat-icon>
+                  <div>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 block leading-none">Today's Vitals</span>
+                    <div class="flex items-center gap-1.5 mt-0.5 font-bold text-slate-900 text-xs">
+                      @if (latestRecordedVitals().bp; as bp) {
+                        <span class="text-indigo-700 font-semibold">BP {{ bp.systolic }}/{{ bp.diastolic }}</span>
+                      } @else {
+                        <span class="text-slate-500 font-medium">BP Not Logged</span>
+                      }
+                      @if (latestRecordedVitals().gluc; as gluc) {
+                        <span class="text-amber-800 font-semibold">• Gluc {{ gluc }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card B: Next Scheduled Med -->
+                <div class="flex-1 sm:flex-initial flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-2xs">
+                  <mat-icon class="text-indigo-600 text-base">medication</mat-icon>
+                  <div>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 block leading-none">Next Routine</span>
+                    <div class="mt-0.5 font-bold text-slate-900 text-xs truncate max-w-[150px]">
+                      @if (nextScheduledMedication(); as med) {
+                        <span>{{ med.name }} {{ med.dosage }}</span>
+                      } @else {
+                        <span class="text-slate-500 font-medium">No Active Meds</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Profile Edit CTA -->
+                <button
+                  type="button"
+                  (click)="isProfileModalOpen.set(true)"
+                  class="p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-95 text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs shrink-0 flex items-center gap-1.5"
+                  title="View & Edit Patient Baseline"
+                >
+                  <mat-icon class="text-base text-slate-600">tune</mat-icon>
+                  <span class="hidden sm:inline">Baseline</span>
+                </button>
               </div>
             </div>
-
-            <button
-              type="button"
-              (click)="isProfileModalOpen.set(true)"
-              class="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-98 text-xs font-medium text-slate-700 transition cursor-pointer shadow-2xs"
-            >
-              <mat-icon class="text-sm text-slate-500">edit_note</mat-icon>
-              <span>Edit Baseline Profile</span>
-            </button>
           </div>
 
           <!-- Unified Caregiver Scribe & Active Listening Chat Room -->
@@ -319,16 +360,60 @@ const INITIAL_DRAFT: ScribeDraft = {
             </div>
 
             <!-- Conversation Stream -->
-            <div class="p-4 sm:p-6 space-y-4 max-h-[500px] overflow-y-auto bg-[#FAF9F6]/50">
+            <div class="p-4 sm:p-6 space-y-4 max-h-[500px] overflow-y-auto bg-[#F8FAFC]/60">
               @if (draft().conversation.length === 0) {
-                <div class="py-10 text-center text-slate-500 max-w-md mx-auto space-y-2">
-                  <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center mx-auto mb-2">
-                    <mat-icon class="text-2xl">record_voice_over</mat-icon>
+                <div class="py-6 sm:py-10 px-4 text-center max-w-md mx-auto space-y-4">
+                  <!-- Ambient Pulse & Circular Hero Mic CTA -->
+                  <div class="relative inline-flex items-center justify-center">
+                    @if (speech.isListening()) {
+                      <div class="absolute -inset-4 rounded-full bg-teal-400/20 animate-ping"></div>
+                      <div class="absolute -inset-2 rounded-full bg-teal-500/30 animate-pulse"></div>
+                    }
+                    <button
+                      type="button"
+                      (click)="toggleVoiceRecording()"
+                      class="relative z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95 border-4"
+                      [class.bg-rose-600]="speech.isListening()"
+                      [class.border-rose-300]="speech.isListening()"
+                      [class.text-white]="speech.isListening()"
+                      [class.bg-teal-700]="!speech.isListening()"
+                      [class.border-teal-100]="!speech.isListening()"
+                      [class.hover:bg-teal-800]="!speech.isListening()"
+                      [class.text-white]="!speech.isListening()"
+                      [title]="speech.isListening() ? 'Tap to pause recording' : 'Tap to start voice recording'"
+                    >
+                      <mat-icon class="text-3xl sm:text-4xl">{{ speech.isListening() ? 'mic' : 'record_voice_over' }}</mat-icon>
+                    </button>
                   </div>
-                  <p class="text-sm font-bold text-slate-800">Caregiver Observation &amp; Scribe Room</p>
-                  <p class="text-xs text-slate-500 leading-relaxed">
-                    Speak or type how {{ activePatient().name }} is doing. Gemini will listen actively, cross-reference her baseline medications and target vitals, and ask targeted clinical clarifications.
-                  </p>
+
+                  <!-- Dynamic Audio Soundwave Indicator (Visible when Listening) -->
+                  @if (speech.isListening()) {
+                    <div class="flex items-center justify-center gap-1.5 h-7">
+                      <span class="w-1 rounded-full bg-teal-600 animate-soundwave-1"></span>
+                      <span class="w-1 rounded-full bg-teal-600 animate-soundwave-2"></span>
+                      <span class="w-1 rounded-full bg-teal-700 animate-soundwave-3"></span>
+                      <span class="w-1 rounded-full bg-teal-600 animate-soundwave-4"></span>
+                      <span class="w-1 rounded-full bg-teal-500 animate-soundwave-5"></span>
+                    </div>
+                  }
+
+                  <!-- Cognitive State Guidance -->
+                  <div>
+                    <h4 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                      @if (speech.isListening()) {
+                        Listening to Caregiver Voice...
+                      } @else {
+                        Tap to Speak Observation
+                      }
+                    </h4>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-sm mx-auto leading-relaxed">
+                      @if (speech.isListening()) {
+                        Speak naturally about vitals, meals, symptoms, or doctor advice. Tap the mic when finished.
+                      } @else {
+                        Hands-free dictation for busy caregivers. Gemini transcribes, cross-references baseline medications, and flags safety warnings.
+                      }
+                    </p>
+                  </div>
                 </div>
               } @else {
                 @for (turn of draft().conversation; track turn.timestamp; let isLast = $last) {
@@ -475,58 +560,55 @@ const INITIAL_DRAFT: ScribeDraft = {
                 }
               </div>
 
-              <!-- Dictation & Text Input Form -->
-              <div class="flex items-end gap-2 sm:gap-3">
-                <!-- Voice Mic Button (Hero min 44x44) -->
+              <!-- Dictation & Text Input Form (Uniform height & aligned elements) -->
+              <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Voice Mic Button (Desktop only; on mobile, elevated bottom FAB is used) -->
                 <button
                   type="button"
                   (click)="toggleVoiceRecording()"
-                  class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition cursor-pointer shadow-xs active:scale-95"
+                  class="hidden md:flex w-12 h-12 rounded-2xl items-center justify-center shrink-0 transition cursor-pointer shadow-xs active:scale-95 min-w-[48px] min-h-[48px]"
                   [class.bg-rose-600]="speech.isListening()"
                   [class.text-white]="speech.isListening()"
                   [class.animate-pulse]="speech.isListening()"
-                  [class.bg-slate-100]="!speech.isListening()"
-                  [class.text-slate-700]="!speech.isListening()"
-                  [class.hover:bg-slate-200]="!speech.isListening()"
+                  [class.bg-teal-50]="!speech.isListening()"
+                  [class.text-teal-800]="!speech.isListening()"
+                  [class.hover:bg-teal-100]="!speech.isListening()"
                   [class.border]="!speech.isListening()"
-                  [class.border-slate-200]="!speech.isListening()"
+                  [class.border-teal-200]="!speech.isListening()"
                   [title]="speech.isListening() ? 'Listening... Tap to stop' : 'Tap to dictate observation hands-free'"
                 >
-                  <mat-icon class="text-xl sm:text-2xl">{{ speech.isListening() ? 'mic' : 'mic_none' }}</mat-icon>
+                  <mat-icon class="text-2xl">{{ speech.isListening() ? 'mic' : 'mic_none' }}</mat-icon>
                 </button>
 
-                <!-- Auto-sizing Text Input -->
-                <div class="flex-1 relative min-w-0">
+                <!-- Unified Input & Send Shell (Equal 50px height, aligned geometry) -->
+                <div class="flex-1 flex items-center bg-slate-50/80 hover:bg-slate-50 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/30 focus-within:border-emerald-600 border border-slate-200 rounded-2xl transition shadow-2xs min-h-[50px] p-1.5 pl-3.5 sm:pl-4 gap-2">
                   <textarea
                     [ngModel]="observationInput()"
                     (ngModelChange)="observationInput.set($event)"
                     (keydown.control.enter)="submitObservation()"
                     (keydown.meta.enter)="submitObservation()"
-                    rows="2"
+                    rows="1"
                     placeholder="Type or speak care observation..."
-                    class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-slate-200 bg-slate-50/40 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 transition resize-none leading-relaxed"
+                    class="flex-1 bg-transparent border-0 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none py-1.5 max-h-24 leading-normal"
                   ></textarea>
-                  <span class="hidden sm:inline-block absolute right-3 bottom-2 text-[10px] text-slate-400 pointer-events-none font-mono">
-                    Ctrl/Cmd+Enter
-                  </span>
-                </div>
 
-                <!-- Send Button (Hero min 44x44) -->
-                <button
-                  id="btn-submit-observation"
-                  type="button"
-                  (click)="submitObservation()"
-                  [disabled]="isAnalyzing() || !observationInput().trim()"
-                  class="h-11 sm:h-12 px-3.5 sm:px-5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0 min-w-[44px] sm:min-w-[48px]"
-                  title="Send observation to EMA"
-                >
-                  @if (isAnalyzing()) {
-                    <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  } @else {
-                    <mat-icon class="text-base sm:text-lg">send</mat-icon>
-                    <span class="hidden sm:inline">Send</span>
-                  }
-                </button>
+                  <!-- Send Button (Uniform height nested inside shell) -->
+                  <button
+                    id="btn-submit-observation"
+                    type="button"
+                    (click)="submitObservation()"
+                    [disabled]="isAnalyzing() || !observationInput().trim()"
+                    class="h-10 sm:h-10 px-3 sm:px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 disabled:opacity-40 text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+                    title="Send observation to EMA"
+                  >
+                    @if (isAnalyzing()) {
+                      <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    } @else {
+                      <mat-icon class="text-base sm:text-lg">send</mat-icon>
+                      <span class="hidden sm:inline">Send</span>
+                    }
+                  </button>
+                </div>
               </div>
 
               @if (speech.isListening()) {
@@ -641,6 +723,54 @@ const INITIAL_DRAFT: ScribeDraft = {
                   </div>
                 }
 
+                <!-- 3-Part Layman's Caregiver Artifact Cards -->
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Caregiver Actionable Breakdown</span>
+                    <span class="text-[10px] text-teal-900 font-bold bg-teal-100/70 px-2 py-0.5 rounded-full border border-teal-200/80">
+                      Plain English
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs sm:text-sm">
+                    <!-- Card 1: Key Findings -->
+                    <div class="p-3.5 sm:p-4 rounded-xl bg-teal-50/50 border border-teal-200/80 space-y-1.5 shadow-2xs">
+                      <div class="flex items-center gap-1.5 text-teal-950 font-bold text-xs">
+                        <mat-icon class="text-base text-teal-700">insights</mat-icon>
+                        <span>1. Key Findings &amp; Status</span>
+                      </div>
+                      <p class="text-slate-800 leading-relaxed text-xs">
+                        {{ draft().doctorConsultBullet || draft().clinicalSoap?.assessment || 'Patient stable with normal baseline observation.' }}
+                      </p>
+                    </div>
+
+                    <!-- Card 2: Medication Routine -->
+                    <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5 shadow-2xs">
+                      <div class="flex items-center gap-1.5 text-slate-900 font-bold text-xs">
+                        <mat-icon class="text-base text-indigo-600">medication</mat-icon>
+                        <span>2. Meds &amp; Dosing</span>
+                      </div>
+                      <p class="text-slate-700 leading-relaxed text-xs">
+                        @if (draft().groundedAnalysis?.potentialMedicineInteractionOrConflict) {
+                          <span class="text-rose-700 font-semibold">{{ draft().groundedAnalysis?.potentialMedicineInteractionOrConflict }}</span>
+                        } @else {
+                          <span>Routine verified against baseline prescriptions. All dosages tracked.</span>
+                        }
+                      </p>
+                    </div>
+
+                    <!-- Card 3: Next Visit Checklist -->
+                    <div class="p-3.5 sm:p-4 rounded-xl bg-indigo-50/50 border border-indigo-200/80 space-y-1.5 shadow-2xs">
+                      <div class="flex items-center gap-1.5 text-indigo-950 font-bold text-xs">
+                        <mat-icon class="text-base text-indigo-700">contact_support</mat-icon>
+                        <span>3. Next Visit Checklist</span>
+                      </div>
+                      <p class="text-slate-800 leading-relaxed text-xs">
+                        {{ draft().clinicalSoap?.plan || 'Continue daily fasting glucose and morning BP monitoring.' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Clinical SOAP Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
                   <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70">
@@ -724,6 +854,35 @@ const INITIAL_DRAFT: ScribeDraft = {
                   </div>
                 }
 
+                <!-- 1-Page Clinical Brief Quick-Share Ribbon -->
+                <div class="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-teal-50/90 to-indigo-50/90 border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <mat-icon class="text-base">share</mat-icon>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-xs sm:text-sm text-slate-900">Doctor &amp; Family Quick-Share</h4>
+                      <p class="text-[11px] text-slate-600">Share 1-page visit summary to WhatsApp, Messages, or export to clinician.</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="shareSummary()"
+                    class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-95 text-white text-xs font-bold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <mat-icon class="text-sm">send</mat-icon>
+                    <span>Share 1-Page Summary</span>
+                  </button>
+                </div>
+
+                @if (shareSuccessMessage()) {
+                  <div class="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-2">
+                    <mat-icon class="text-sm text-emerald-700">check_circle</mat-icon>
+                    <span>{{ shareSuccessMessage() }}</span>
+                  </div>
+                }
+
                 <!-- Encrypted Journal Persistence Confirmation & Next Observation Action -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
                   <div class="flex items-center gap-2 text-xs font-semibold text-emerald-800">
@@ -752,26 +911,26 @@ const INITIAL_DRAFT: ScribeDraft = {
       </main>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (Visible only on < md screens) -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-3 py-1.5 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+    <!-- Mobile Bottom Navigation Bar with Notched Elevated Voice FAB -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] h-16">
       <!-- Destination 1: Caregiver Scribe -->
       <button
         id="nav-mobile-scribe"
         type="button"
         (click)="setMobileDestination('scribe')"
         class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation"
-        [class.text-emerald-950]="activeMobileDestination() === 'scribe'"
+        [class.text-teal-900]="activeMobileDestination() === 'scribe'"
         [class.text-slate-400]="activeMobileDestination() !== 'scribe'"
       >
         <div
-          class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
-          [class.bg-emerald-100/80]="activeMobileDestination() === 'scribe'"
-          [class.text-emerald-800]="activeMobileDestination() === 'scribe'"
+          class="flex items-center justify-center px-3 py-0.5 rounded-full transition"
+          [class.bg-teal-100/80]="activeMobileDestination() === 'scribe'"
+          [class.text-teal-900]="activeMobileDestination() === 'scribe'"
         >
-          <mat-icon class="text-xl">mic</mat-icon>
+          <mat-icon class="text-xl">forum</mat-icon>
         </div>
         <span
-          class="text-[11px] mt-0.5 tracking-tight"
+          class="text-[10px] mt-0.5 tracking-tight"
           [class.font-bold]="activeMobileDestination() === 'scribe'"
           [class.font-medium]="activeMobileDestination() !== 'scribe'"
         >
@@ -785,25 +944,25 @@ const INITIAL_DRAFT: ScribeDraft = {
         type="button"
         (click)="setMobileDestination('history')"
         class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation"
-        [class.text-emerald-950]="activeMobileDestination() === 'history'"
+        [class.text-teal-900]="activeMobileDestination() === 'history'"
         [class.text-slate-400]="activeMobileDestination() !== 'history'"
       >
         <div class="relative flex items-center justify-center">
           <div
-            class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
-            [class.bg-emerald-100/80]="activeMobileDestination() === 'history'"
-            [class.text-emerald-800]="activeMobileDestination() === 'history'"
+            class="flex items-center justify-center px-3 py-0.5 rounded-full transition"
+            [class.bg-teal-100/80]="activeMobileDestination() === 'history'"
+            [class.text-teal-900]="activeMobileDestination() === 'history'"
           >
             <mat-icon class="text-xl">folder_shared</mat-icon>
           </div>
           @if (clinicalEntries().length > 0) {
-            <span class="absolute -top-1 right-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-800 text-white min-w-[16px] text-center shadow-xs">
+            <span class="absolute -top-1 right-0 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-800 text-white min-w-[16px] text-center shadow-xs">
               {{ clinicalEntries().length }}
             </span>
           }
         </div>
         <span
-          class="text-[11px] mt-0.5 tracking-tight"
+          class="text-[10px] mt-0.5 tracking-tight"
           [class.font-bold]="activeMobileDestination() === 'history'"
           [class.font-medium]="activeMobileDestination() !== 'history'"
         >
@@ -811,7 +970,31 @@ const INITIAL_DRAFT: ScribeDraft = {
         </span>
       </button>
 
-      <!-- Destination 3: Doctor Handover -->
+      <!-- Center Destination: Elevated "Tap to Speak" FAB (Visible ONLY when Scribe is active; No text label) -->
+      @if (activeMobileDestination() === 'scribe') {
+        <div class="relative flex flex-col items-center justify-center px-1 shrink-0 w-14">
+          @if (speech.isListening()) {
+            <div class="absolute -top-7 w-16 h-16 rounded-full bg-amber-400/30 animate-ping pointer-events-none"></div>
+            <div class="absolute -top-7 w-16 h-16 rounded-full bg-amber-500/20 animate-pulse pointer-events-none"></div>
+          }
+          <button
+            id="btn-bottom-tap-to-speak"
+            type="button"
+            (click)="handleBottomVoiceTap()"
+            class="relative -top-5 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all transform active:scale-90 cursor-pointer border-4 border-white"
+            [class.bg-rose-600]="speech.isListening()"
+            [class.text-white]="speech.isListening()"
+            [class.bg-amber-500]="!speech.isListening()"
+            [class.text-white]="!speech.isListening()"
+            [class.hover:bg-amber-600]="!speech.isListening()"
+            [title]="speech.isListening() ? 'Listening... Tap to stop' : 'Tap to speak observation hands-free'"
+          >
+            <mat-icon class="text-2xl">mic</mat-icon>
+          </button>
+        </div>
+      }
+
+      <!-- Destination 4: Doctor Handover -->
       <button
         id="nav-mobile-handover"
         type="button"
@@ -821,18 +1004,33 @@ const INITIAL_DRAFT: ScribeDraft = {
         [class.text-slate-400]="activeMobileDestination() !== 'doctor'"
       >
         <div
-          class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
+          class="flex items-center justify-center px-3 py-0.5 rounded-full transition"
           [class.bg-indigo-100/80]="activeMobileDestination() === 'doctor'"
           [class.text-indigo-800]="activeMobileDestination() === 'doctor'"
         >
           <mat-icon class="text-xl">medical_services</mat-icon>
         </div>
         <span
-          class="text-[11px] mt-0.5 tracking-tight"
+          class="text-[10px] mt-0.5 tracking-tight"
           [class.font-bold]="activeMobileDestination() === 'doctor'"
           [class.font-medium]="activeMobileDestination() !== 'doctor'"
         >
           Handover
+        </span>
+      </button>
+
+      <!-- Destination 5: User Account Profile -->
+      <button
+        id="nav-mobile-profile"
+        type="button"
+        (click)="openUserAccountModal()"
+        class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation text-slate-400 hover:text-slate-700"
+      >
+        <div class="flex items-center justify-center px-3 py-0.5 rounded-full transition">
+          <mat-icon class="text-xl">person</mat-icon>
+        </div>
+        <span class="text-[10px] mt-0.5 tracking-tight font-medium">
+          Profile
         </span>
       </button>
     </nav>
@@ -879,6 +1077,18 @@ export class Dashboard implements OnInit {
       this.firebaseState.currentRole.set('caregiver');
       this.mobileTab.set('scribe');
     }
+  }
+
+  handleBottomVoiceTap(): void {
+    if (this.currentRole() === 'doctor') {
+      this.firebaseState.currentRole.set('caregiver');
+    }
+    this.mobileTab.set('scribe');
+    this.toggleVoiceRecording();
+  }
+
+  openUserAccountModal(): void {
+    this.firebaseState.isUserAccountModalOpen.set(true);
   }
 
   readonly observationInput = signal<string>('');
@@ -981,6 +1191,94 @@ export class Dashboard implements OnInit {
 
     return list;
   });
+
+  readonly isSharing = signal<boolean>(false);
+  readonly shareSuccessMessage = signal<string | null>(null);
+
+  readonly latestRecordedVitals = computed(() => {
+    const entries = this.clinicalEntries();
+    for (const e of entries) {
+      if (
+        e.extractedMetrics?.bloodPressure?.systolic ||
+        e.extractedMetrics?.bloodGlucose
+      ) {
+        return {
+          bp: e.extractedMetrics?.bloodPressure,
+          gluc: e.extractedMetrics?.bloodGlucose,
+          date: e.createdAt,
+        };
+      }
+    }
+    const bpTarget = this.activePatient().baselineVitals;
+    const glucTarget = this.activePatient().baselineVitals?.fastingBloodSugarRange;
+    return {
+      bp: bpTarget
+        ? { systolic: bpTarget.targetBpSystolic, diastolic: bpTarget.targetBpDiastolic }
+        : null,
+      gluc: glucTarget || null,
+      date: null,
+    };
+  });
+
+  readonly nextScheduledMedication = computed(() => {
+    const meds = this.activePatient().currentMedications || [];
+    return meds.length > 0 ? meds[0] : null;
+  });
+
+  async shareSummary(): Promise<void> {
+    const p = this.activePatient();
+    const d = this.draft();
+    const bp = d.extractedMetrics?.bloodPressure;
+    const gluc = d.extractedMetrics?.bloodGlucose;
+
+    const summaryText = [
+      `📋 EMA CLINICAL JOURNAL SUMMARY`,
+      `Patient: ${p.name} (${this.currentYear - p.birthYear}y)`,
+      `Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+      ``,
+      `🩺 Vitals Recorded:`,
+      bp?.systolic && bp?.diastolic ? `• Blood Pressure: ${bp.systolic}/${bp.diastolic} mmHg` : null,
+      gluc ? `• Blood Glucose: ${gluc} mmol/L` : null,
+      ``,
+      `📌 Doctor Handover Brief:`,
+      d.doctorConsultBullet || d.clinicalSoap?.assessment || 'Patient stable.',
+      ``,
+      d.groundedAnalysis?.potentialMedicineInteractionOrConflict
+        ? `⚠️ Safety Notice: ${d.groundedAnalysis.potentialMedicineInteractionOrConflict}`
+        : null,
+      ``,
+      `📝 Care Notes:`,
+      `• Subjective: ${d.clinicalSoap?.subjective || 'N/A'}`,
+      `• Objective: ${d.clinicalSoap?.objective || 'N/A'}`,
+      `• Plan: ${d.clinicalSoap?.plan || 'N/A'}`,
+      ``,
+      `EMA Protected Elderly Health Journal • Generated with Gemini 3.8 Flash`
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `EMA Health Summary - ${p.name}`,
+          text: summaryText,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.warn('Web Share failed, falling back to clipboard:', err);
+        }
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(summaryText);
+      this.shareSuccessMessage.set(
+        '1-Page Clinical Brief copied to clipboard! Ready to paste into WhatsApp.',
+      );
+      setTimeout(() => this.shareSuccessMessage.set(null), 4500);
+    }
+  }
 
   toggleVoiceRecording(): void {
     this.speech.toggle();

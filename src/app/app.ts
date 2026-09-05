@@ -5,11 +5,12 @@ import {Dashboard} from './dashboard/dashboard';
 import {FirebaseState} from './services/firebase';
 import {PatientProfileModal} from './components/patient-profile-modal';
 import {OnboardingModal} from './components/onboarding-modal';
+import {UserAccountModal} from './components/user-account-modal';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
-  imports: [MatIconModule, Landing, Dashboard, PatientProfileModal, OnboardingModal],
+  imports: [MatIconModule, Landing, Dashboard, PatientProfileModal, OnboardingModal, UserAccountModal],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -21,6 +22,7 @@ export class App {
   readonly currentRole = this.firebaseState.currentRole;
   readonly activePatient = this.firebaseState.activePatient;
   readonly isProfileModalOpen = signal<boolean>(false);
+  readonly isUserAccountModalOpen = this.firebaseState.isUserAccountModalOpen;
   readonly isOnboardingOpen = signal<boolean>(false);
 
   constructor() {

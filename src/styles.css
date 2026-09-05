@@ -4,17 +4,34 @@
 
 :root {
   --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-brand-teal: #0F766E;
+  --color-brand-mint: #CCFBF1;
+  --color-surface-slate: #F8FAFC;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
 }
 
 html, body {
   height: 100%;
   margin: 0;
-  background-color: #FAF9F6;
-  color: #1E293B;
+  background-color: #F8FAFC;
+  color: #0F172A;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Tactile Audio Soundwave Pulsing Animation */
+@keyframes soundwave {
+  0%, 100% { height: 6px; }
+  50% { height: 28px; }
+}
+
+.animate-soundwave-1 { animation: soundwave 0.7s ease-in-out infinite; }
+.animate-soundwave-2 { animation: soundwave 0.7s ease-in-out infinite 0.15s; }
+.animate-soundwave-3 { animation: soundwave 0.7s ease-in-out infinite 0.3s; }
+.animate-soundwave-4 { animation: soundwave 0.7s ease-in-out infinite 0.45s; }
+.animate-soundwave-5 { animation: soundwave 0.7s ease-in-out infinite 0.2s; }
 
 /* Custom subtle scrollbar for clean card containers */
 ::-webkit-scrollbar {
@@ -31,3 +48,4 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
 }
+

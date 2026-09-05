@@ -7,6 +7,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   User,
+  deleteUser,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -86,6 +87,7 @@ export class FirebaseState {
   readonly authError = signal<string | null>(null);
   readonly activePatient = signal<PatientProfile>(DEFAULT_PATIENT_PROFILE);
   readonly currentRole = signal<'caregiver' | 'doctor'>('caregiver');
+  readonly isUserAccountModalOpen = signal<boolean>(false);
 
   private readonly app =
     getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -225,6 +227,45 @@ export class FirebaseState {
     } catch (error: unknown) {
       console.error('Sign-out error:', error);
       this.currentUser.set(null);
+    }
+  }
+
+  async deleteAccount(): Promise<{ success: boolean; requiresRecentLogin?: boolean; error?: string }> {
+    try {
+      const user = this.auth.currentUser;
+      if (!user) {
+        return { success: false, error: 'No active user session found.' };
+      }
+      const uid = user.uid;
+      try {
+        await deleteDoc(doc(this.db, 'users', uid));
+      } catch (e) {
+        console.warn('Non-fatal error clearing Firestore profile:', e);
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('google_tasks_access_token');
+        localStorage.removeItem('ema_patient_profile');
+        localStorage.removeItem('ema_clinical_entries');
+      }
+      await deleteUser(user);
+      this.googleAccessToken.set(null);
+      this.currentUser.set(null);
+      this.isUserAccountModalOpen.set(false);
+      return { success: true };
+    } catch (error: unknown) {
+      console.error('Account deletion error:', error);
+      const errCode = (error as { code?: string })?.code;
+      if (errCode === 'auth/requires-recent-login') {
+        return {
+          success: false,
+          requiresRecentLogin: true,
+          error: 'Security verification required: Please sign out, sign back in with Google, and retry account deletion.',
+        };
+      }
+      return {
+        success: false,
+        error: (error as Error)?.message || 'Failed to delete account. Please try again.',
+      };
     }
   }
 
