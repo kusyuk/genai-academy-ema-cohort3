@@ -247,21 +247,24 @@ Active Prescriptions: ${(patientProfile.currentMedications || []).map((m: {name:
 Baseline Vitals Target: BP < ${patientProfile.baselineVitals?.targetBpSystolic || 130}/${patientProfile.baselineVitals?.targetBpDiastolic || 80} mmHg
 `;
 
-    const systemInstruction = `You are EMA, an enterprise-grade Clinical Scribe, Patient Safety Officer, and Caregiver Companion.
-You operate under strict zero-trust security, PHI de-identification standards, and clinical grounding rules.
+    const systemInstruction = `You are EMA, a warm, compassionate, and empathetic Elderly Care Companion and Clinical Scribe.
+You support family caregivers who are dedicating their time and care to their aging loved ones.
 
-OPERATIONAL CONSTITUTION:
-1. GROUNDING MANDATE: Cross-reference the caregiver's observation against the verified patient medical profile.
-2. NON-DIAGNOSTIC SAFETY: You do not make definitive medical diagnoses. Frame assessments objectively (e.g., "Symptoms consistent with...").
-3. ACTIVE LISTENING: If critical context is missing (such as whether medication was taken with meals, exact BP reading, or symptom onset timing), ask at most 1 compassionate, plain-language question.
-4. INSTANT REPLIES: Provide 2-3 tap-friendly quick replies for the caregiver.
-5. STRICT JSON OUTPUT: Output ONLY valid JSON matching this schema:
+OPERATIONAL CONSTITUTION & TONE:
+1. EMPATHETIC ACTIVE LISTENING: Speak with genuine warmth, gentle acknowledgment, and supportive empathy. Validate the caregiver's dedication (e.g., "Thank you for logging that.", "I know tracking this daily takes a lot of care."). Never sound cold, robotic, or like an interrogating clinic auditor.
+2. JOURNALING COMPANION (DO NOT PREMATURELY CONCLUDE): Keep the caregiver in a comfortable, supportive journaling flow. Ask at most ONE natural, caring question to help document the day (e.g., asking how the loved one is resting, whether food or warm water was taken, or symptom timing). Never summarize or abruptly conclude the session yourself—the caregiver will decide when they are ready to finalize.
+3. GROUNDED MEDICINE SAFETY: Cross-reference observations against the patient baseline profile.
+   - If a medication conflict, adherence gap, or safety risk is detected (such as Amlodipine or Metformin taken on an empty stomach, or sudden orthostatic dizziness), provide a concise, non-alarmist, actionable insight in "interimAlert" (e.g., "Amlodipine taken on an empty stomach can cause rapid blood pressure drops and lightheadedness.").
+   - If no safety risk is detected, set "interimAlert" to null.
+4. TAP-FRIENDLY REPLIES: Provide 2-3 short, natural quick-reply options (e.g., ["Rested after breakfast", "Ate a light meal", "Checked BP"]).
+5. JSON OUTPUT FORMAT: Output ONLY valid JSON matching this schema:
 {
   "hasSufficientContext": boolean,
-  "clarificationQuestion": string | null,
+  "clarificationQuestion": string,
   "instantReplyOptions": string[],
   "interimAlert": string | null
-}`;
+}
+Always provide a friendly conversational response in "clarificationQuestion" to keep the caregiver's journaling experience smooth, compassionate, and open.`;
 
     const contents: { role: string; parts: { text: string }[] }[] = [];
 
@@ -340,7 +343,7 @@ Analyze the complete multi-turn conversation and patient baseline profile to gen
 
 CRITICAL INSTRUCTIONS:
 1. Grounding: Cross-reference symptoms against known chronic conditions and active prescriptions.
-2. Drug Conflict Check: If an antihypertensive or diabetic drug was taken incorrectly (e.g. without food) or triggered side effects (e.g. dizziness, orthostasis), explicitly flag it.
+2. Medicine Conflict Check: If an antihypertensive or diabetic medicine was taken incorrectly (e.g. without food) or triggered side effects (e.g. dizziness, orthostasis), explicitly flag it.
 3. Metric Extraction: Parse any numeric measurements (BP systolic/diastolic, blood glucose, temperature).
 4. Clinical SOAP: Subjective, Objective, Assessment, Plan. Frame assessment objectively ("Symptoms consistent with...").
 5. Care Directives (Google Tasks): Parse the Plan into actionable items for Google Tasks (e.g., "Recheck BP at 13:00", "Administer Metformin with food").
@@ -355,6 +358,7 @@ STRICT JSON ONLY:
     "temperature": number | null
   },
   "groundedAnalysis": {
+    "potentialMedicineInteractionOrConflict": string | null,
     "potentialDrugInteractionOrConflict": string | null,
     "conditionRelevance": string[],
     "adherenceFlag": string | null
@@ -424,8 +428,9 @@ Active Prescriptions: ${(patientProfile.currentMedications || []).map((m: {name:
 Baseline Vitals Target: BP < ${patientProfile.baselineVitals?.targetBpSystolic || 130}/${patientProfile.baselineVitals?.targetBpDiastolic || 80} mmHg
 `;
 
-    const summaryData = entries.map((e: { createdAt?: string; clinicalSoap?: { subjective: string; objective: string; assessment: string }; extractedMetrics?: { bloodPressure?: { systolic?: number; diastolic?: number }; bloodGlucose?: number }; groundedAnalysis?: { potentialDrugInteractionOrConflict?: string } }) => {
-      return `Date: ${e.createdAt || 'N/A'} | BP: ${e.extractedMetrics?.bloodPressure?.systolic || 'N/A'}/${e.extractedMetrics?.bloodPressure?.diastolic || 'N/A'} | Glucose: ${e.extractedMetrics?.bloodGlucose || 'N/A'} | Assessment: ${e.clinicalSoap?.assessment || 'N/A'} | Conflict: ${e.groundedAnalysis?.potentialDrugInteractionOrConflict || 'None'}`;
+    const summaryData = entries.map((e: { createdAt?: string; clinicalSoap?: { subjective: string; objective: string; assessment: string }; extractedMetrics?: { bloodPressure?: { systolic?: number; diastolic?: number }; bloodGlucose?: number }; groundedAnalysis?: { potentialMedicineInteractionOrConflict?: string; potentialDrugInteractionOrConflict?: string } }) => {
+      const conflict = e.groundedAnalysis?.potentialMedicineInteractionOrConflict || e.groundedAnalysis?.potentialDrugInteractionOrConflict || 'None';
+      return `Date: ${e.createdAt || 'N/A'} | BP: ${e.extractedMetrics?.bloodPressure?.systolic || 'N/A'}/${e.extractedMetrics?.bloodPressure?.diastolic || 'N/A'} | Glucose: ${e.extractedMetrics?.bloodGlucose || 'N/A'} | Assessment: ${e.clinicalSoap?.assessment || 'N/A'} | Medicine Conflict: ${conflict}`;
     }).join('\n');
 
     const systemInstruction = `You are a Senior Attending Physician preparing a high-density 15-second clinical handover brief.

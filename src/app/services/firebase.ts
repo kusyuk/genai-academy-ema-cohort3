@@ -25,6 +25,7 @@ import {
   PatientProfile,
   ClinicalEntry,
   DEFAULT_PATIENT_PROFILE,
+  SAMPLE_HISTORICAL_ENTRIES,
 } from '../models/clinical';
 
 export interface ReflectionTurn {
@@ -303,6 +304,27 @@ export class FirebaseState {
     } catch (error) {
       console.error('Failed to delete clinical entry:', error);
       throw error;
+    }
+  }
+
+  async seedSampleHistoricalEntries(userId: string): Promise<ClinicalEntry[]> {
+    try {
+      const existing = await this.fetchClinicalEntries(userId);
+      if (existing.length > 0) return existing;
+
+      const seeded: ClinicalEntry[] = [];
+      for (const entry of SAMPLE_HISTORICAL_ENTRIES) {
+        const entryToSave: ClinicalEntry = {
+          ...entry,
+          authorUid: userId,
+        };
+        await this.saveClinicalEntry(userId, entryToSave);
+        seeded.push(entryToSave);
+      }
+      return seeded;
+    } catch (error) {
+      console.warn('Failed to seed sample historical entries:', error);
+      return [];
     }
   }
 }

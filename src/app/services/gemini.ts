@@ -114,7 +114,7 @@ export class GeminiState {
       .pipe(
         catchError((err) => {
           const errorMsg =
-            err?.error?.error || err?.message || 'Failed to generate 15-second doctor brief.';
+            err?.error?.error || err?.message || 'Failed to generate Doctor Consultation Handover brief.';
           return throwError(() => new Error(errorMsg));
         }),
       );

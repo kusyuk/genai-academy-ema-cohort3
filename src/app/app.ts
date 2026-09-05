@@ -1,14 +1,15 @@
-import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, inject, signal} from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import {Landing} from './landing/landing';
 import {Dashboard} from './dashboard/dashboard';
 import {FirebaseState} from './services/firebase';
 import {PatientProfileModal} from './components/patient-profile-modal';
+import {OnboardingModal} from './components/onboarding-modal';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
-  imports: [MatIconModule, Landing, Dashboard, PatientProfileModal],
+  imports: [MatIconModule, Landing, Dashboard, PatientProfileModal, OnboardingModal],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -20,6 +21,19 @@ export class App {
   readonly currentRole = this.firebaseState.currentRole;
   readonly activePatient = this.firebaseState.activePatient;
   readonly isProfileModalOpen = signal<boolean>(false);
+  readonly isOnboardingOpen = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const u = this.user();
+      if (u && typeof window !== 'undefined') {
+        const completed = localStorage.getItem('ema_onboarding_completed');
+        if (completed !== 'true') {
+          this.isOnboardingOpen.set(true);
+        }
+      }
+    });
+  }
 
   setRole(role: 'caregiver' | 'doctor'): void {
     this.firebaseState.currentRole.set(role);

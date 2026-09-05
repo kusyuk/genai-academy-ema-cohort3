@@ -103,10 +103,10 @@ import {
 
           <!-- Allergies -->
           <div>
-            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Drug & Substance Allergies</label>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Medicine & Substance Allergies</label>
             <div class="flex flex-wrap gap-1.5 mb-2">
               @for (a of profile().allergies; track a.allergen) {
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 text-xs font-medium">
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 text-xs font-medium">
                   <mat-icon class="text-xs">warning</mat-icon>
                   {{ a.allergen }} — {{ a.reaction }} ({{ a.severity }})
                 </span>
@@ -117,22 +117,22 @@ import {
           <!-- Active Prescriptions Cabinet -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="block text-[11px] font-semibold text-stone-600">Active Medication Cabinet</label>
-              <span class="text-[10px] text-stone-400">Cross-referenced for adverse interactions</span>
+              <label class="block text-xs font-semibold text-stone-700">Active Medication Cabinet</label>
+              <span class="text-xs text-stone-400">Cross-referenced for adverse interactions</span>
             </div>
             <div class="space-y-2">
               @for (m of profile().currentMedications; track m.name; let i = $index) {
-                <div class="p-3 rounded-xl border border-stone-200 bg-stone-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <div class="flex items-center gap-2">
-                      <span class="font-bold text-stone-900">{{ m.name }}</span>
-                      <span class="px-1.5 py-0.5 rounded-md bg-stone-200 text-[10px] font-medium text-stone-700">{{ m.dosage }}</span>
-                      <span class="px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-[10px]">{{ m.timing }}</span>
+                      <span class="font-bold text-stone-900 text-sm">{{ m.name }}</span>
+                      <span class="px-2 py-0.5 rounded-md bg-stone-200 text-xs font-medium text-stone-700">{{ m.dosage }}</span>
+                      <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs">{{ m.timing }}</span>
                     </div>
-                    <p class="text-[11px] text-stone-500 mt-0.5">{{ m.purpose }} • {{ m.frequency }}</p>
+                    <p class="text-xs text-stone-500 mt-0.5">{{ m.purpose }} • {{ m.frequency }}</p>
                     @if (m.instructions) {
-                      <p class="text-[10px] text-amber-700 font-medium mt-0.5 flex items-center gap-1">
-                        <mat-icon class="text-[12px]">info</mat-icon>
+                      <p class="text-xs text-amber-800 font-medium mt-0.5 flex items-center gap-1">
+                        <mat-icon class="text-xs">info</mat-icon>
                         {{ m.instructions }}
                       </p>
                     }
@@ -140,41 +140,41 @@ import {
                   <button
                     type="button"
                     (click)="removeMedication(i)"
-                    class="self-end sm:self-center text-stone-400 hover:text-rose-600 p-1 cursor-pointer"
+                    class="self-end sm:self-center text-stone-400 hover:text-rose-600 p-2 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg"
                     title="Remove medication"
                   >
-                    <mat-icon class="text-base">delete_outline</mat-icon>
+                    <mat-icon class="text-lg">delete_outline</mat-icon>
                   </button>
                 </div>
               }
             </div>
 
             <!-- Add Medication Form -->
-            <div class="mt-3 p-3 rounded-xl border border-dashed border-stone-300 bg-white grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div class="mt-3 p-3.5 rounded-xl border border-dashed border-stone-300 bg-white grid grid-cols-1 sm:grid-cols-4 gap-2.5">
               <input
                 type="text"
                 #medName
-                placeholder="Drug Name"
-                class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs"
+                placeholder="Medicine Name"
+                class="px-3 py-2 rounded-lg border border-stone-200 text-xs sm:text-sm focus:ring-1 focus:ring-teal-600 focus:outline-none"
               />
               <input
                 type="text"
                 #medDosage
                 placeholder="Dosage (e.g. 10mg)"
-                class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs"
+                class="px-3 py-2 rounded-lg border border-stone-200 text-xs sm:text-sm focus:ring-1 focus:ring-teal-600 focus:outline-none"
               />
               <input
                 type="text"
                 #medTiming
                 placeholder="Timing (e.g. Morning)"
-                class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs"
+                class="px-3 py-2 rounded-lg border border-stone-200 text-xs sm:text-sm focus:ring-1 focus:ring-teal-600 focus:outline-none"
               />
               <button
                 type="button"
                 (click)="addMedication(medName.value, medDosage.value, medTiming.value); medName.value=''; medDosage.value=''; medTiming.value=''"
-                class="px-3 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs cursor-pointer"
+                class="px-3.5 py-2 min-h-[44px] rounded-lg bg-stone-900 hover:bg-stone-800 active:scale-98 text-white font-medium text-xs sm:text-sm cursor-pointer transition flex items-center justify-center"
               >
-                + Add Drug
+                + Add Medicine
               </button>
             </div>
           </div>

@@ -21,7 +21,7 @@ import {FirebaseState} from '../services/firebase';
 
       <!-- Subtitle -->
       <p class="mt-5 text-sm sm:text-base lg:text-lg text-stone-600 max-w-2xl leading-relaxed">
-        <strong>EMA</strong> bridges the communication gap between family caregivers and physicians. Hands-free voice scribe, real-time safety alerts for polypharmacy conflicts, Google Tasks directives, and a 15-second longitudinal clinic handover for your doctor.
+        <strong>EMA</strong> bridges the communication gap between family caregivers and physicians. Hands-free voice scribe, real-time safety alerts for polypharmacy conflicts, Google Tasks directives, and a longitudinal Doctor Consultation Handover brief for your physician.
       </p>
 
       <!-- Auth Action Box -->
@@ -95,7 +95,7 @@ import {FirebaseState} from '../services/firebase';
           </div>
           <h2 class="text-base font-bold text-stone-900 mb-2">Grounded Safety Officer</h2>
           <p class="text-xs text-stone-600 leading-relaxed">
-            Observations are automatically verified against patient baseline prescriptions and allergies to catch drug interactions and adherence issues.
+            Observations are automatically verified against patient baseline prescriptions and allergies to catch medicine conflicts and adverse interactions.
           </p>
         </div>
 
@@ -104,7 +104,7 @@ import {FirebaseState} from '../services/firebase';
           <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-4">
             <mat-icon class="text-xl">medical_services</mat-icon>
           </div>
-          <h2 class="text-base font-bold text-stone-900 mb-2">15-Second Doctor Handover</h2>
+          <h2 class="text-base font-bold text-stone-900 mb-2">Doctor Consultation Handover</h2>
           <p class="text-xs text-stone-600 leading-relaxed">
             Physicians get an immediate high-density executive synthesis with longitudinal SVG blood pressure and glucose trend graphs and discussion targets.
           </p>

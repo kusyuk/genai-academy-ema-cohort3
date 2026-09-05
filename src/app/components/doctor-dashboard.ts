@@ -43,9 +43,9 @@ interface VitalPoint {
             </div>
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="text-lg sm:text-xl font-bold text-stone-900">15-Second Clinic Handover</h1>
+                <h1 class="text-lg sm:text-xl font-bold text-stone-900">Doctor Consultation Handover</h1>
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200">
-                  Doctor / Clinician Review
+                  Longitudinal Physician Brief
                 </span>
               </div>
               <p class="text-xs text-stone-500 mt-0.5">
@@ -205,7 +205,7 @@ interface VitalPoint {
           @if (isSynthesizing()) {
             <div class="py-4 flex items-center gap-3 text-teal-200">
               <span class="w-4 h-4 border-2 border-teal-300 border-t-transparent rounded-full animate-spin"></span>
-              <span>Gemini is reading longitudinal vitals and notes to distill your 15-second handover...</span>
+              <span>Gemini 3.8 Flash is synthesizing longitudinal vitals and notes for the Doctor Consultation Handover...</span>
             </div>
           } @else if (handover()) {
             <p>{{ handover()?.aiSynthesizedOverview }}</p>
@@ -416,7 +416,7 @@ interface VitalPoint {
                   </div>
                 </div>
 
-                <!-- 15-Second Doctor Consult Bullet -->
+                <!-- Doctor Handover Consult Bullet -->
                 <p class="text-xs font-medium text-stone-900 mb-2">
                   👉 {{ entry.doctorConsultBullet }}
                 </p>

@@ -30,6 +30,8 @@ interface ConversationItem {
   role: 'user' | 'model';
   text: string;
   timestamp: string;
+  interimAlert?: string | null;
+  instantReplies?: string[];
 }
 
 interface ScribeDraft {
@@ -66,8 +68,39 @@ const INITIAL_DRAFT: ScribeDraft = {
   ],
   template: `
     <div class="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6">
+      <!-- Mobile Segmented View Switcher (Visible only on < md screens) -->
+      <div class="md:hidden flex rounded-xl bg-stone-200/80 p-1 border border-stone-300/60 mb-1 text-xs font-semibold shrink-0">
+        <button
+          type="button"
+          (click)="mobileTab.set('scribe')"
+          class="flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+          [class.bg-white]="mobileTab() === 'scribe'"
+          [class.text-stone-900]="mobileTab() === 'scribe'"
+          [class.shadow-xs]="mobileTab() === 'scribe'"
+          [class.text-stone-600]="mobileTab() !== 'scribe'"
+        >
+          <mat-icon class="text-sm">mic</mat-icon>
+          <span>Caregiver Scribe</span>
+        </button>
+        <button
+          type="button"
+          (click)="mobileTab.set('history')"
+          class="flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+          [class.bg-white]="mobileTab() === 'history'"
+          [class.text-stone-900]="mobileTab() === 'history'"
+          [class.shadow-xs]="mobileTab() === 'history'"
+          [class.text-stone-600]="mobileTab() !== 'history'"
+        >
+          <mat-icon class="text-sm">folder_shared</mat-icon>
+          <span>Clinical Log ({{ clinicalEntries().length }})</span>
+        </button>
+      </div>
+
       <!-- Left Sidebar: Clinical Journal Log & History -->
-      <aside class="w-full md:w-80 flex flex-col shrink-0 bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden h-[520px] md:h-auto">
+      <aside
+        class="w-full md:w-80 md:!flex flex-col shrink-0 bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden h-[520px] md:h-auto"
+        [class.hidden]="mobileTab() !== 'history'"
+      >
         <!-- History Header -->
         <div class="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
           <div class="flex items-center gap-2">
@@ -234,9 +267,12 @@ const INITIAL_DRAFT: ScribeDraft = {
       </aside>
 
       <!-- Right Main Workspace: Doctor Mode vs Caregiver Scribe -->
-      <main class="flex-1 flex flex-col min-w-0 space-y-6">
+      <main
+        class="flex-1 flex-col min-w-0 space-y-6 md:!flex"
+        [class.hidden]="mobileTab() !== 'scribe'"
+      >
         @if (currentRole() === 'doctor') {
-          <!-- Doctor 15-Second Clinic Handover Mode -->
+          <!-- Doctor Consultation Handover Mode -->
           <app-doctor-dashboard [allEntries]="clinicalEntries()" />
         } @else {
           <!-- Caregiver Voice Scribe & SOAP Generator Mode -->
@@ -271,240 +307,264 @@ const INITIAL_DRAFT: ScribeDraft = {
             </button>
           </div>
 
-          <!-- Active Caregiver Voice & Note Entry Console -->
-          <div class="bg-white rounded-2xl border border-stone-200 p-5 sm:p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <mat-icon class="text-teal-700 text-lg">record_voice_over</mat-icon>
-                <h3 class="font-bold text-stone-900 text-sm sm:text-base">Caregiver Observation Scribe</h3>
+          <!-- Unified Caregiver Scribe & Active Listening Chat Room -->
+          <div class="bg-white rounded-2xl border border-stone-200 shadow-xs flex flex-col overflow-hidden">
+            <!-- Header Bar -->
+            <div class="p-4 sm:p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-teal-700 text-white flex items-center justify-center shadow-xs">
+                  <mat-icon class="text-lg">forum</mat-icon>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-stone-900 text-sm sm:text-base">Caregiver Scribe &amp; Active Listening</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-100 text-teal-800">
+                      Gemini 3.8 Flash
+                    </span>
+                  </div>
+                  <p class="text-xs text-stone-500">
+                    {{ draft().conversation.length }} turns logged • Cross-referencing {{ activePatient().name }}'s baseline
+                  </p>
+                </div>
               </div>
-              <span class="text-[11px] text-stone-400">Gemini 3.8 Flash Grounded</span>
-            </div>
 
-            <!-- Voice Dictation Hero Button -->
-            <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div class="flex items-center gap-3">
+              @if (draft().conversation.length > 0) {
                 <button
                   type="button"
-                  (click)="toggleVoiceRecording()"
-                  class="w-12 h-12 rounded-2xl flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
-                  [class.bg-rose-600]="speech.isListening()"
-                  [class.text-white]="speech.isListening()"
-                  [class.animate-pulse]="speech.isListening()"
-                  [class.bg-stone-900]="!speech.isListening()"
-                  [class.text-white]="!speech.isListening()"
-                  [class.hover:bg-stone-800]="!speech.isListening()"
-                  title="Toggle hands-free microphone"
+                  (click)="startNewScribeSession()"
+                  class="inline-flex items-center gap-1.5 text-xs text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 transition cursor-pointer min-h-[36px]"
+                  title="Start fresh observation session"
                 >
-                  <mat-icon class="text-2xl">{{ speech.isListening() ? 'mic' : 'mic_none' }}</mat-icon>
+                  <mat-icon class="text-sm">refresh</mat-icon>
+                  <span>Reset Session</span>
                 </button>
-                <div>
-                  <p class="text-xs font-bold text-stone-900">
-                    {{ speech.isListening() ? 'Listening to caregiver voice...' : 'Hands-Free Caregiver Dictation' }}
-                  </p>
-                  <p class="text-[11px] text-stone-500">
-                    {{ speech.isListening() ? 'Speak naturally. Tap mic again when finished.' : 'Tap mic to narrate vitals, symptoms, food, or medication doses.' }}
-                  </p>
-                </div>
-              </div>
-
-              @if (speech.errorMessage()) {
-                <span class="text-[11px] text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">
-                  {{ speech.errorMessage() }}
-                </span>
               }
             </div>
 
-            <!-- Manual / Dictated Observation Input Area -->
-            <div class="space-y-2">
-              <textarea
-                [ngModel]="observationInput()"
-                (ngModelChange)="observationInput.set($event)"
-                (keydown.control.enter)="submitObservation()"
-                (keydown.meta.enter)="submitObservation()"
-                rows="3"
-                placeholder="Type or dictate care observations (e.g. 'Mother took morning Amlodipine after breakfast. BP measured 138/84. She felt slightly dizzy around 11am...')"
-                class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-white text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600"
-              ></textarea>
-
-              <!-- Quick Spark Scenarios -->
-              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px] text-stone-600">
-                <span class="font-medium text-stone-400 shrink-0">Quick Spark:</span>
-                @for (prompt of sparkPrompts; track prompt.label) {
-                  <button
-                    type="button"
-                    (click)="applySparkPrompt(prompt.text)"
-                    class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 shrink-0 transition cursor-pointer border border-stone-200"
-                  >
-                    {{ prompt.label }}
-                  </button>
-                }
-              </div>
-            </div>
-
-            <!-- Live Analysis State Banner -->
-            @if (isAnalyzing()) {
-              <div class="p-3.5 rounded-xl bg-teal-50/90 border border-teal-200 text-teal-950 flex items-center gap-3 text-xs animate-pulse">
-                <span class="w-4 h-4 border-2 border-teal-700 border-t-transparent rounded-full animate-spin shrink-0"></span>
-                <div class="flex-1">
-                  <p class="font-bold text-teal-900">Gemini 3.8 Flash Clinical Scribe Active</p>
-                  <p class="text-[11px] text-teal-700">Cross-referencing verified baseline medications &amp; vitals target...</p>
-                </div>
-              </div>
-            }
-
-            <!-- AI Notice & Retry Banner -->
-            @if (errorMessage()) {
-              <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start justify-between gap-3 text-xs animate-in fade-in duration-200">
-                <div class="flex items-start gap-2.5">
-                  <mat-icon class="text-rose-600 text-base shrink-0 mt-0.5">error_outline</mat-icon>
-                  <div>
-                    <p class="font-bold text-rose-900">AI Service Notice</p>
-                    <p class="text-[11px] text-rose-700 mt-0.5">{{ errorMessage() }}</p>
+            <!-- Conversation Stream -->
+            <div class="p-4 sm:p-6 space-y-4 max-h-[500px] overflow-y-auto bg-stone-50/30">
+              @if (draft().conversation.length === 0) {
+                <div class="py-10 text-center text-stone-500 max-w-md mx-auto space-y-2">
+                  <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center mx-auto mb-2">
+                    <mat-icon class="text-2xl">record_voice_over</mat-icon>
                   </div>
+                  <p class="text-sm font-bold text-stone-800">Caregiver Observation &amp; Scribe Room</p>
+                  <p class="text-xs text-stone-500 leading-relaxed">
+                    Speak or type how {{ activePatient().name }} is doing. Gemini will listen actively, cross-reference her baseline medications and target vitals, and ask targeted clinical clarifications.
+                  </p>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    (click)="retryLastObservation()"
-                    class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition text-[11px] cursor-pointer shadow-2xs"
-                  >
-                    Retry
-                  </button>
-                  <button
-                    type="button"
-                    (click)="errorMessage.set(null)"
-                    class="p-1 text-rose-400 hover:text-rose-700 transition cursor-pointer"
-                  >
-                    <mat-icon class="text-sm">close</mat-icon>
-                  </button>
-                </div>
-              </div>
-            }
-
-            <!-- Send Action Row -->
-            <div class="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                (click)="startNewScribeSession()"
-                class="text-xs text-stone-400 hover:text-stone-700 transition cursor-pointer"
-              >
-                Clear Scribe Session
-              </button>
-
-              <button
-                id="btn-submit-observation"
-                type="button"
-                (click)="submitObservation()"
-                [disabled]="isAnalyzing() || !observationInput().trim()"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-98 disabled:opacity-50 text-white text-xs font-semibold transition cursor-pointer shadow-xs"
-              >
-                @if (isAnalyzing()) {
-                  <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Cross-Referencing Baseline...</span>
-                } @else {
-                  <mat-icon class="text-sm">send</mat-icon>
-                  <span>Submit Observation</span>
-                }
-              </button>
-            </div>
-          </div>
-
-          <!-- Multi-Turn Active Listening & Instant Quick-Replies -->
-          @if (draft().conversation.length > 0 || draft().currentClarification) {
-            <div class="bg-white rounded-2xl border border-stone-200 p-5 sm:p-6 shadow-xs space-y-4 animate-in fade-in duration-150">
-              <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-                <div class="flex items-center gap-2">
-                  <mat-icon class="text-teal-700 text-lg">forum</mat-icon>
-                  <h3 class="font-bold text-stone-900 text-sm">Active Listening &amp; Clarification</h3>
-                </div>
-                <span class="text-[11px] text-stone-400 font-mono">{{ draft().conversation.length }} turns</span>
-              </div>
-
-              <!-- Conversation Thread -->
-              <div class="space-y-3">
-                @for (turn of draft().conversation; track turn.timestamp) {
-                  <div
-                    class="flex flex-col text-xs sm:text-sm p-3.5 rounded-xl max-w-2xl"
-                    [class.ml-auto]="turn.role === 'user'"
-                    [class.bg-stone-900]="turn.role === 'user'"
-                    [class.text-white]="turn.role === 'user'"
-                    [class.mr-auto]="turn.role === 'model'"
-                    [class.bg-teal-50]="turn.role === 'model'"
-                    [class.text-teal-950]="turn.role === 'model'"
-                    [class.border]="turn.role === 'model'"
-                    [class.border-teal-200]="turn.role === 'model'"
-                  >
-                    <div class="flex items-center justify-between gap-4 mb-1 text-[10px] opacity-75">
-                      <span class="font-bold">{{ turn.role === 'user' ? 'Caregiver Note' : 'EMA Scribe' }}</span>
-                      <span>{{ turn.timestamp | date:'shortTime' }}</span>
+              } @else {
+                @for (turn of draft().conversation; track turn.timestamp; let isLast = $last) {
+                  @if (turn.role === 'user') {
+                    <!-- Caregiver Turn (Right) -->
+                    <div class="flex flex-col items-end">
+                      <div class="max-w-xl p-3.5 sm:p-4 rounded-2xl rounded-tr-xs bg-stone-900 text-white shadow-xs space-y-1.5">
+                        <div class="flex items-center justify-between gap-4 text-xs text-stone-300">
+                          <span class="font-bold flex items-center gap-1">
+                            <mat-icon class="text-xs">person</mat-icon>
+                            Caregiver Note
+                          </span>
+                          <span class="font-mono text-[11px] opacity-80">{{ turn.timestamp | date:'shortTime' }}</span>
+                        </div>
+                        <p class="text-xs sm:text-sm leading-relaxed text-stone-100 whitespace-pre-wrap">{{ turn.text }}</p>
+                      </div>
                     </div>
-                    <p class="leading-relaxed">{{ turn.text }}</p>
-                  </div>
-                }
-              </div>
+                  } @else {
+                    <!-- Centered Grounded Safety Insight Notice Pill (if interim alert present) -->
+                    @if (turn.interimAlert) {
+                      <div class="flex justify-center my-1 sm:my-2 w-full animate-in fade-in duration-200">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium shadow-2xs max-w-lg text-center">
+                          <mat-icon class="text-amber-600 text-sm shrink-0">shield</mat-icon>
+                          <span><strong class="font-semibold text-amber-950">Safety Insight:</strong> {{ turn.interimAlert }}</span>
+                        </div>
+                      </div>
+                    }
 
-              <!-- Interim Safety Alert (if any) -->
-              @if (draft().interimAlert) {
-                <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2.5 text-xs">
-                  <mat-icon class="text-amber-600 text-base shrink-0 mt-0.5">warning</mat-icon>
-                  <div>
-                    <span class="font-bold">Interim Safety Note:</span> {{ draft().interimAlert }}
-                  </div>
-                </div>
-              }
+                    <!-- Gemini Companion Turn (Left) -->
+                    <div class="flex flex-col items-start space-y-2.5 max-w-2xl">
+                      <div class="p-4 sm:p-5 rounded-2xl rounded-tl-xs bg-white border border-teal-200 shadow-xs space-y-3">
+                        <div class="flex items-center justify-between gap-4 text-xs text-teal-800 border-b border-teal-100 pb-2">
+                          <span class="font-bold flex items-center gap-1.5">
+                            <mat-icon class="text-sm text-teal-700">smart_toy</mat-icon>
+                            EMA Care Companion
+                          </span>
+                          <span class="text-teal-600 font-mono text-[11px]">{{ turn.timestamp | date:'shortTime' }}</span>
+                        </div>
 
-              <!-- Active Clarification Question & Instant Quick-Reply Chips -->
-              @if (draft().currentClarification && !draft().isFinalized) {
-                <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200 space-y-3">
-                  <div class="flex items-start gap-2">
-                    <mat-icon class="text-teal-700 text-base shrink-0 mt-0.5">help_outline</mat-icon>
-                    <div>
-                      <p class="text-xs font-bold text-teal-900">Scribe Follow-up Question:</p>
-                      <p class="text-xs sm:text-sm text-teal-950 mt-0.5 leading-relaxed">{{ draft().currentClarification }}</p>
-                    </div>
-                  </div>
+                        <!-- Empathetic Companion / Clarification Text -->
+                        <p class="text-xs sm:text-sm text-stone-900 leading-relaxed font-medium whitespace-pre-wrap">{{ turn.text }}</p>
 
-                  <!-- Instant Quick-Reply Tap Chips -->
-                  @if (draft().instantReplies.length > 0) {
-                    <div class="flex items-center gap-2 flex-wrap pt-1">
-                      <span class="text-[11px] font-semibold text-teal-800">Quick Answer:</span>
-                      @for (reply of draft().instantReplies; track reply) {
-                        <button
-                          type="button"
-                          (click)="sendQuickReply(reply)"
-                          [disabled]="isAnalyzing()"
-                          class="px-3 py-1.5 rounded-lg bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-medium transition cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
-                        >
-                          {{ reply }}
-                        </button>
-                      }
+                        <!-- Instant Quick-Reply Chips (Generous 44px touch targets) -->
+                        @if (isLast && !draft().isFinalized && turn.instantReplies && turn.instantReplies.length > 0) {
+                          <div class="pt-2 border-t border-teal-100 space-y-2">
+                            <span class="text-xs font-bold text-teal-900 block">Quick Answer:</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                              @for (reply of turn.instantReplies; track reply) {
+                                <button
+                                  type="button"
+                                  (click)="sendQuickReply(reply)"
+                                  [disabled]="isAnalyzing()"
+                                  class="px-4 py-2 min-h-[44px] rounded-xl bg-teal-50 hover:bg-teal-100 active:scale-95 text-teal-950 border border-teal-300 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs disabled:opacity-50 flex items-center"
+                                >
+                                  {{ reply }}
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
                     </div>
                   }
+                }
+              }
+
+              <!-- In-Chat Typing / Baseline Cross-Referencing Indicator -->
+              @if (isAnalyzing()) {
+                <div class="flex items-start gap-2 text-teal-900 max-w-md animate-pulse">
+                  <div class="p-3.5 rounded-2xl rounded-tl-xs bg-teal-50 border border-teal-200 flex items-center gap-2.5 text-xs sm:text-sm">
+                    <span class="w-4 h-4 border-2 border-teal-700 border-t-transparent rounded-full animate-spin shrink-0"></span>
+                    <span class="font-medium text-teal-900">EMA Scribe is cross-referencing medications &amp; vitals target...</span>
+                  </div>
                 </div>
               }
 
-              <!-- Finalize Action Strip -->
+              <!-- In-Chat Error Banner -->
+              @if (errorMessage()) {
+                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start justify-between gap-3 text-xs sm:text-sm animate-in fade-in duration-150">
+                  <div class="flex items-start gap-2.5">
+                    <mat-icon class="text-rose-600 text-base shrink-0 mt-0.5">error_outline</mat-icon>
+                    <div>
+                      <p class="font-bold text-rose-900">AI Service Notice</p>
+                      <p class="text-xs text-rose-700 mt-0.5">{{ errorMessage() }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      (click)="retryLastObservation()"
+                      class="px-3 py-1.5 min-h-[36px] rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition text-xs cursor-pointer shadow-2xs"
+                    >
+                      Retry
+                    </button>
+                    <button
+                      type="button"
+                      (click)="errorMessage.set(null)"
+                      class="p-1 text-rose-400 hover:text-rose-700 transition cursor-pointer"
+                    >
+                      <mat-icon class="text-sm">close</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Compile & Finalize Action Strip -->
               @if (!draft().isFinalized && draft().conversation.length > 0) {
-                <div class="pt-2 flex items-center justify-end">
+                <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-100/80 p-3.5 rounded-xl border border-stone-200">
+                  <div class="flex items-center gap-2 text-xs sm:text-sm text-stone-700">
+                    <mat-icon class="text-teal-700 text-base">assignment_turned_in</mat-icon>
+                    <span>Sufficient context gathered? Compile structured clinical note.</span>
+                  </div>
                   <button
                     type="button"
                     (click)="compileAndFinalizeSoap()"
                     [disabled]="isFinalizing()"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-98 disabled:opacity-50 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition cursor-pointer shadow-xs shrink-0"
                   >
                     @if (isFinalizing()) {
-                      <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                       <span>Structuring Clinical SOAP...</span>
                     } @else {
-                      <mat-icon class="text-sm">assignment_turned_in</mat-icon>
+                      <mat-icon class="text-sm">verified</mat-icon>
                       <span>Compile &amp; Finalize Clinical Record</span>
                     }
                   </button>
                 </div>
               }
             </div>
-          }
+
+            <!-- Docked Bottom Composer Area -->
+            <div class="p-3 sm:p-5 border-t border-stone-200 bg-white space-y-2.5 sm:space-y-3">
+              <!-- Quick Sparks Row (Common Elderly Scenarios) -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-xs text-stone-600">
+                <span class="font-semibold text-stone-500 shrink-0 text-[11px] sm:text-xs">Quick Spark:</span>
+                @for (prompt of sparkPrompts; track prompt.label) {
+                  <button
+                    type="button"
+                    (click)="applySparkPrompt(prompt.text)"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-800 shrink-0 transition cursor-pointer border border-stone-200 text-xs font-medium"
+                  >
+                    {{ prompt.label }}
+                  </button>
+                }
+              </div>
+
+              <!-- Dictation & Text Input Form -->
+              <div class="flex items-end gap-2 sm:gap-3">
+                <!-- Voice Mic Button (Hero min 44x44) -->
+                <button
+                  type="button"
+                  (click)="toggleVoiceRecording()"
+                  class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition cursor-pointer shadow-xs active:scale-95"
+                  [class.bg-rose-600]="speech.isListening()"
+                  [class.text-white]="speech.isListening()"
+                  [class.animate-pulse]="speech.isListening()"
+                  [class.bg-stone-100]="!speech.isListening()"
+                  [class.text-stone-700]="!speech.isListening()"
+                  [class.hover:bg-stone-200]="!speech.isListening()"
+                  [class.border]="!speech.isListening()"
+                  [class.border-stone-200]="!speech.isListening()"
+                  [title]="speech.isListening() ? 'Listening... Tap to stop' : 'Tap to dictate observation hands-free'"
+                >
+                  <mat-icon class="text-xl sm:text-2xl">{{ speech.isListening() ? 'mic' : 'mic_none' }}</mat-icon>
+                </button>
+
+                <!-- Auto-sizing Text Input -->
+                <div class="flex-1 relative min-w-0">
+                  <textarea
+                    [ngModel]="observationInput()"
+                    (ngModelChange)="observationInput.set($event)"
+                    (keydown.control.enter)="submitObservation()"
+                    (keydown.meta.enter)="submitObservation()"
+                    rows="2"
+                    placeholder="Type or speak care observation..."
+                    class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-stone-200 bg-stone-50/40 text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition resize-none leading-relaxed"
+                  ></textarea>
+                  <span class="hidden sm:inline-block absolute right-3 bottom-2 text-[10px] text-stone-400 pointer-events-none font-mono">
+                    Ctrl/Cmd+Enter
+                  </span>
+                </div>
+
+                <!-- Send Button (Hero min 44x44) -->
+                <button
+                  id="btn-submit-observation"
+                  type="button"
+                  (click)="submitObservation()"
+                  [disabled]="isAnalyzing() || !observationInput().trim()"
+                  class="h-11 sm:h-12 px-3.5 sm:px-5 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0 min-w-[44px] sm:min-w-[48px]"
+                  title="Send observation to EMA"
+                >
+                  @if (isAnalyzing()) {
+                    <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  } @else {
+                    <mat-icon class="text-base sm:text-lg">send</mat-icon>
+                    <span class="hidden sm:inline">Send</span>
+                  }
+                </button>
+              </div>
+
+              @if (speech.isListening()) {
+                <div class="flex items-center gap-2 text-xs text-rose-700 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 animate-pulse">
+                  <span class="w-2 h-2 rounded-full bg-rose-600"></span>
+                  <span>Hands-free voice recording active. Speak naturally; tap microphone when finished.</span>
+                </div>
+              }
+              @if (speech.errorMessage()) {
+                <div class="text-xs text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">
+                  {{ speech.errorMessage() }}
+                </div>
+              }
+            </div>
+          </div>
 
           <!-- Finalized Clinical SOAP Record Card -->
           @if (draft().isFinalized && draft().clinicalSoap) {
@@ -536,21 +596,21 @@ const INITIAL_DRAFT: ScribeDraft = {
                 </div>
               </div>
 
-              <!-- 15-Second Doctor Consult Bullet Callout -->
+              <!-- Doctor Handover Consult Bullet Callout -->
               @if (draft().doctorConsultBullet) {
                 <div class="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-950 text-xs sm:text-sm font-medium">
-                  <span class="font-bold text-teal-800">15-Sec Doctor Brief:</span> {{ draft().doctorConsultBullet }}
+                  <span class="font-bold text-teal-800">Doctor Handover Brief:</span> {{ draft().doctorConsultBullet }}
                 </div>
               }
 
-              <!-- Grounded Drug Interaction / Adherence Alert -->
-              @if (draft().groundedAnalysis?.potentialDrugInteractionOrConflict) {
-                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-1">
+              <!-- Grounded Medicine Interaction / Adherence Alert -->
+              @if (draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict) {
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm space-y-1">
                   <div class="flex items-center gap-2 font-bold text-rose-800">
                     <mat-icon class="text-base text-rose-600">report_problem</mat-icon>
-                    <span>Grounded Drug Conflict / Safety Warning:</span>
+                    <span>Grounded Medicine Conflict / Safety Warning:</span>
                   </div>
-                  <p class="leading-relaxed pl-6">{{ draft().groundedAnalysis?.potentialDrugInteractionOrConflict }}</p>
+                  <p class="leading-relaxed pl-6">{{ draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict }}</p>
                 </div>
               }
 
@@ -676,6 +736,7 @@ export class Dashboard implements OnInit {
 
   readonly searchQuery = signal<string>('');
   readonly selectedFilter = signal<'all' | 'vitals' | 'alerts'>('all');
+  readonly mobileTab = signal<'scribe' | 'history'>('scribe');
 
   readonly observationInput = signal<string>('');
   readonly isAnalyzing = signal<boolean>(false);
@@ -781,6 +842,7 @@ export class Dashboard implements OnInit {
   }
 
   startNewScribeSession(): void {
+    this.mobileTab.set('scribe');
     this.observationInput.set('');
     this.selectedEntryId.set(null);
     this.errorMessage.set(null);
@@ -789,12 +851,15 @@ export class Dashboard implements OnInit {
   }
 
   selectHistoricalEntry(entry: ClinicalEntry): void {
+    this.mobileTab.set('scribe');
     this.selectedEntryId.set(entry.id);
     this.draft.set({
       conversation: entry.conversationTranscript.map((t) => ({
         role: t.role,
         text: t.text,
         timestamp: t.timestamp || entry.createdAt,
+        interimAlert: t.interimAlert,
+        instantReplies: t.instantReplies,
       })),
       currentClarification: null,
       instantReplies: [],
@@ -855,17 +920,32 @@ export class Dashboard implements OnInit {
       .subscribe({
         next: (resp) => {
           this.isAnalyzing.set(false);
+          const updatedConv = [...this.draft().conversation];
+          if (resp.clarificationQuestion) {
+            updatedConv.push({
+              role: 'model',
+              text: resp.clarificationQuestion,
+              timestamp: new Date().toISOString(),
+              interimAlert: resp.interimAlert,
+              instantReplies: resp.instantReplyOptions || [],
+            });
+          } else if (resp.interimAlert) {
+            updatedConv.push({
+              role: 'model',
+              text: 'Observation recorded and verified against baseline medications.',
+              timestamp: new Date().toISOString(),
+              interimAlert: resp.interimAlert,
+              instantReplies: [],
+            });
+          }
+
           this.draft.update((d) => ({
             ...d,
+            conversation: updatedConv,
             currentClarification: resp.clarificationQuestion,
             instantReplies: resp.instantReplyOptions || [],
             interimAlert: resp.interimAlert,
           }));
-
-          // If Gemini had sufficient context immediately, auto-finalize can be initiated
-          if (resp.hasSufficientContext && !resp.clarificationQuestion) {
-            this.compileAndFinalizeSoap();
-          }
         },
         error: (err) => {
           console.error('Clarification error:', err);
