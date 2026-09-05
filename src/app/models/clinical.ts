@@ -75,6 +75,7 @@ export interface GoogleTaskDirective {
   dueMinutesFromNow?: number;
   notes?: string;
   synced?: boolean;
+  isLocalFallback?: boolean;
 }
 
 export interface ConversationTurn {

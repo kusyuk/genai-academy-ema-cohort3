@@ -120,11 +120,16 @@ export class GeminiState {
       );
   }
 
-  syncTask(directive: GoogleTaskDirective, patientName: string): Observable<TaskSyncResponse> {
+  syncTask(
+    directive: GoogleTaskDirective,
+    patientName: string,
+    accessToken?: string | null,
+  ): Observable<TaskSyncResponse> {
     return this.http
       .post<TaskSyncResponse>('/api/tasks/sync', {
         directive,
         patientName,
+        accessToken,
       })
       .pipe(
         catchError((err) => {

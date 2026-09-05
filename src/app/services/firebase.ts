@@ -81,6 +81,7 @@ export function sanitizeFirestorePayload<T>(obj: T): T {
 })
 export class FirebaseState {
   readonly currentUser = signal<UserProfile | null>(null);
+  readonly googleAccessToken = signal<string | null>(null);
   readonly isAuthLoading = signal<boolean>(true);
   readonly authError = signal<string | null>(null);
   readonly activePatient = signal<PatientProfile>(DEFAULT_PATIENT_PROFILE);
@@ -94,6 +95,12 @@ export class FirebaseState {
     : getFirestore(this.app);
 
   constructor() {
+    if (typeof window !== 'undefined') {
+      const cachedToken = localStorage.getItem('google_tasks_access_token');
+      if (cachedToken) {
+        this.googleAccessToken.set(cachedToken);
+      }
+    }
     this.initAuthListener();
     this.testConnection();
   }
@@ -130,6 +137,10 @@ export class FirebaseState {
           });
         } else {
           this.currentUser.set(null);
+          this.googleAccessToken.set(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('google_tasks_access_token');
+          }
         }
         this.isAuthLoading.set(false);
       },
@@ -148,6 +159,7 @@ export class FirebaseState {
       provider.setCustomParameters({ prompt: 'select_account' });
       const credential = await signInWithPopup(this.auth, provider);
       const user = credential.user;
+
       const profile: UserProfile = {
         uid: user.uid,
         email: user.email,
@@ -165,12 +177,34 @@ export class FirebaseState {
     }
   }
 
+  async requestTasksScope(): Promise<string | null> {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/tasks');
+      provider.setCustomParameters({ prompt: 'consent' });
+      const credential = await signInWithPopup(this.auth, provider);
+      const credentialResult = GoogleAuthProvider.credentialFromResult(credential);
+      const token = credentialResult?.accessToken || null;
+      if (token && typeof window !== 'undefined') {
+        localStorage.setItem('google_tasks_access_token', token);
+      }
+      this.googleAccessToken.set(token);
+      return token;
+    } catch (err: unknown) {
+      console.warn('Google Tasks permission was cancelled or not granted:', err);
+      return null;
+    }
+  }
 
   async signOut(): Promise<void> {
     try {
       if (this.auth.currentUser) {
         await firebaseSignOut(this.auth);
       }
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('google_tasks_access_token');
+      }
+      this.googleAccessToken.set(null);
       this.currentUser.set(null);
     } catch (error: unknown) {
       console.error('Sign-out error:', error);
