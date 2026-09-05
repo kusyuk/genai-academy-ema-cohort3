@@ -35,7 +35,7 @@ Elderly care and chronic disease management present three critical challenges:
                                                   │
                   ┌───────────────────────────────┴───────────────────────────────┐
                   ▼                                                               ▼
-        [Caregiver Scribe Mode]                                         [Doctor 15s Mode]
+        [Caregiver Scribe Mode]                                   [Doctor Consultation Handover]
   - Hands-Free Speech Dictation                                   - Executive Clinical Brief
   - Ambient Quick Sparks                                          - Longitudinal SVG BP Lines
   - Real-Time Follow-up Bubbles                                   - Glucose Scatter Plots
@@ -87,9 +87,26 @@ Elderly care and chronic disease management present three critical challenges:
 - **Prescription Adherence Rate:** Calculated compliance metric.
 - **Consultation Agenda:** AI-curated discussion topics (e.g., dosage titration, dietary sodium, follow-up intervals).
 
-### 4. 📋 Challenge Feature Enhancement: Google Tasks Integration
-- The AI automatically extracts actionable care directives from the clinical plan (e.g., *"Recheck blood pressure in 4 hours"*, *"Administer Metformin after dinner"*).
-- Synchronizes tasks with calculated due dates to the user's Google account via `/api/tasks/sync`.
+### 4. 📋 Challenge Feature Enhancement: Google Tasks Integration & OAuth Architecture
+
+EMA bridges the gap between clinical synthesis and real-world caregiver follow-up by translating AI-extracted SOAP `Plan` items into scheduled Google Tasks.
+
+#### ⚠️ Google Tasks OAuth 2.0 Policy & Hackathon Testing Limitation
+* **Sensitive Scope Classification:** Google classifies `https://www.googleapis.com/auth/tasks` as a **Sensitive Scope** requiring OAuth App Verification.
+* **GCP Testing Mode Constraint:** For development and hackathon projects where the OAuth consent screen is in **"Testing"** publishing status, Google strictly restricts sensitive scopes to accounts pre-registered under **GCP Console > OAuth Consent Screen > Test Users**. Any external account attempting to authorize sensitive scopes receives **`Error 403: access_denied`** (*"App has not completed the Google verification process"*).
+
+#### 🛡️ EMA's Resilient Architectural Solution:
+1. **Incremental Authorization (Zero Login Friction):**
+   - The primary sign-in flow (`signInWithGoogle`) requests strictly non-sensitive identity scopes (`openid`, `email`, `profile`).
+   - Any evaluator, judge, or user can sign in immediately with zero verification blocks or warnings.
+2. **On-Demand Scope Elevation (`requestTasksScope`):**
+   - The `tasks` scope is only requested when the caregiver actively taps **"Sync to Google Tasks"** on an extracted directive.
+3. **Live REST API Dispatch for Whitelisted Testers:**
+   - Whitelisted accounts (e.g., `kusyuk@gmail.com`) acquire an OAuth bearer token that is dispatched to Cloud Run (`POST /api/tasks/sync`).
+   - The backend creates real tasks via `https://tasks.googleapis.com/tasks/v1/lists/@default/tasks` with clinical notes and due timestamps, providing an active link to [tasks.google.com](https://tasks.google.com/).
+4. **Intelligent Local Care Plan Fallback for Evaluators:**
+   - When a hackathon judge or non-whitelisted tester taps "Sync to Google Tasks" (or cancels the prompt), EMA detects the OAuth limitation and seamlessly commits the directive into the local Care Plan (`Scheduled in Care Plan`).
+   - The demo flow never breaks, ensuring an uninterrupted evaluation experience.
 
 ### 5. ⚡ Gemini 3.8 Flash Resilient Model Ladder
 To guarantee **100% uptime** during hackathon judging and bypass temporary free-tier rate limits (20 RPD) or AI Studio demand spikes:

@@ -1,37 +1,39 @@
-<div class="min-h-screen flex flex-col bg-stone-100 text-stone-800 font-sans antialiased selection:bg-stone-800 selection:text-white w-full max-w-full overflow-x-hidden">
+<div class="min-h-screen flex flex-col bg-[#FAF9F6] text-slate-800 font-sans antialiased selection:bg-teal-700 selection:text-white w-full max-w-full overflow-x-hidden">
   <!-- Global Application Header -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-2.5 sm:px-6 h-16 flex items-center justify-between shadow-xs gap-1.5 sm:gap-3 max-w-full overflow-hidden">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-2.5 sm:px-6 h-16 flex items-center justify-between shadow-2xs gap-1.5 sm:gap-3 max-w-full overflow-hidden">
     <!-- Brand Identity -->
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-800 text-white flex items-center justify-center shadow-xs">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-700 text-white flex items-center justify-center shadow-xs">
         <mat-icon class="text-lg sm:text-xl">local_hospital</mat-icon>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <span class="font-bold text-stone-900 text-base sm:text-lg tracking-tight">EMA</span>
-          <span class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+          <span class="font-bold text-slate-900 text-base sm:text-lg tracking-tight">EMA</span>
+          <span class="hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200/80">
             Protected Clinical Journal
           </span>
-          <span class="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-600 border border-stone-200">
+          <span class="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
             Gemini 3.8 Flash
           </span>
         </div>
-        <p class="text-[11px] text-stone-500 hidden lg:block">Caregiver Dictation &bull; Grounded Medicine Safety &bull; Doctor Consultation Handover</p>
+        <p class="text-[11px] text-slate-500 hidden lg:block">Caregiver Dictation &bull; Grounded Medicine Safety &bull; Doctor Consultation Handover</p>
       </div>
     </div>
 
-    <!-- Center Mode Switcher (Visible when Authenticated) -->
+    <!-- Center Mode Switcher (Visible on Desktop when Authenticated) -->
     @if (user()) {
-      <div class="flex items-center shrink-0">
-        <div class="inline-flex rounded-xl bg-stone-100 p-0.5 sm:p-1 border border-stone-200 text-xs font-semibold">
+      <div class="hidden md:flex items-center shrink-0">
+        <div class="inline-flex rounded-xl bg-slate-100/90 p-0.5 sm:p-1 border border-slate-200/80 text-xs font-semibold shadow-inner-xs">
           <button
             type="button"
             (click)="setRole('caregiver')"
-            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg transition cursor-pointer"
+            class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg transition cursor-pointer"
             [class.bg-white]="currentRole() === 'caregiver'"
-            [class.text-stone-900]="currentRole() === 'caregiver'"
+            [class.text-emerald-950]="currentRole() === 'caregiver'"
             [class.shadow-xs]="currentRole() === 'caregiver'"
-            [class.text-stone-500]="currentRole() !== 'caregiver'"
+            [class.border]="currentRole() === 'caregiver'"
+            [class.border-emerald-200/70]="currentRole() === 'caregiver'"
+            [class.text-slate-500]="currentRole() !== 'caregiver'"
             title="Caregiver Voice Scribe"
           >
             <mat-icon class="text-sm text-teal-700">record_voice_over</mat-icon>
@@ -41,15 +43,17 @@
           <button
             type="button"
             (click)="setRole('doctor')"
-            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg transition cursor-pointer"
+            class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg transition cursor-pointer"
             [class.bg-white]="currentRole() === 'doctor'"
-            [class.text-stone-900]="currentRole() === 'doctor'"
+            [class.text-indigo-950]="currentRole() === 'doctor'"
             [class.shadow-xs]="currentRole() === 'doctor'"
-            [class.text-stone-500]="currentRole() !== 'doctor'"
+            [class.border]="currentRole() === 'doctor'"
+            [class.border-indigo-200/70]="currentRole() === 'doctor'"
+            [class.text-slate-500]="currentRole() !== 'doctor'"
             title="Doctor Consultation Handover"
           >
-            <mat-icon class="text-sm text-blue-600">medical_services</mat-icon>
-            <span class="hidden sm:inline">Doctor Consultation Handover</span>
+            <mat-icon class="text-sm text-indigo-600">medical_services</mat-icon>
+            <span class="hidden sm:inline">Doctor Handover</span>
             <span class="sm:hidden text-[11px]">Handover</span>
           </button>
         </div>
@@ -59,8 +63,8 @@
     <!-- Right Controls: Patient Pill, Auth Profile & Actions -->
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
       @if (isLoading()) {
-        <div class="flex items-center gap-2 text-xs text-stone-400">
-          <span class="w-3.5 h-3.5 border-2 border-stone-300 border-t-teal-700 rounded-full animate-spin"></span>
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <span class="w-3.5 h-3.5 border-2 border-slate-300 border-t-teal-700 rounded-full animate-spin"></span>
           <span class="hidden sm:inline">Checking session...</span>
         </div>
       } @else if (user(); as u) {
@@ -68,22 +72,22 @@
         <button
           type="button"
           (click)="isProfileModalOpen.set(true)"
-          class="hidden md:flex items-center gap-1.5 pl-2.5 pr-3 py-1 rounded-full bg-teal-50/80 border border-teal-200 hover:bg-teal-100/70 transition cursor-pointer text-xs"
+          class="hidden md:flex items-center gap-1.5 pl-2.5 pr-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 hover:bg-emerald-100/70 transition cursor-pointer text-xs shadow-2xs"
           title="View & Edit Patient Baseline"
         >
-          <span class="w-2 h-2 rounded-full bg-teal-600"></span>
-          <span class="font-medium text-teal-900 truncate max-w-[120px]">{{ activePatient().name }}</span>
-          <mat-icon class="text-xs text-teal-700">settings</mat-icon>
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span class="font-semibold text-emerald-950 truncate max-w-[120px]">{{ activePatient().name }}</span>
+          <mat-icon class="text-xs text-emerald-700">settings</mat-icon>
         </button>
 
         <!-- Authenticated User Profile Badge -->
-        <div class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-stone-50 border border-stone-200">
+        <div class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-white border border-slate-200/80 shadow-2xs">
           @if (u.photoURL) {
             <img
               [src]="u.photoURL"
               [alt]="u.displayName || 'User Avatar'"
               referrerpolicy="no-referrer"
-              class="w-6 h-6 rounded-full object-cover border border-stone-200 shrink-0"
+              class="w-6 h-6 rounded-full object-cover border border-slate-200 shrink-0"
             />
           } @else {
             <div class="w-6 h-6 rounded-full bg-teal-800 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
@@ -91,8 +95,8 @@
             </div>
           }
           <div class="hidden sm:block text-left max-w-[110px] truncate">
-            <p class="text-xs font-medium text-stone-800 truncate leading-tight">{{ u.displayName }}</p>
-            <p class="text-[10px] text-stone-400 truncate leading-none">{{ u.email }}</p>
+            <p class="text-xs font-semibold text-slate-800 truncate leading-tight">{{ u.displayName }}</p>
+            <p class="text-[10px] text-slate-400 truncate leading-none">{{ u.email }}</p>
           </div>
         </div>
 
@@ -100,7 +104,7 @@
         <button
           type="button"
           (click)="isOnboardingOpen.set(true)"
-          class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-stone-200 hover:bg-stone-50 active:scale-98 text-xs font-medium text-stone-600 hover:text-stone-900 transition cursor-pointer flex items-center gap-1"
+          class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 active:scale-98 text-xs font-medium text-slate-700 transition cursor-pointer flex items-center gap-1 shadow-2xs"
           title="Guided Onboarding Tour"
         >
           <mat-icon class="text-sm text-teal-700">help_outline</mat-icon>
@@ -112,7 +116,7 @@
           id="btn-app-signout"
           type="button"
           (click)="handleSignOut()"
-          class="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-stone-200 hover:bg-stone-50 active:scale-98 text-xs font-medium text-stone-600 hover:text-stone-900 transition cursor-pointer flex items-center gap-1"
+          class="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 active:scale-98 text-xs font-medium text-slate-700 transition cursor-pointer flex items-center gap-1 shadow-2xs"
           title="Sign out of your account"
         >
           <mat-icon class="text-sm">logout</mat-icon>
@@ -124,7 +128,7 @@
           id="btn-header-signin"
           type="button"
           (click)="handleSignIn()"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-800 hover:bg-teal-900 active:scale-98 text-white text-xs font-medium transition shadow-xs cursor-pointer"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-98 text-white text-xs font-semibold transition shadow-xs cursor-pointer"
         >
           <mat-icon class="text-sm">login</mat-icon>
           <span>Sign In</span>

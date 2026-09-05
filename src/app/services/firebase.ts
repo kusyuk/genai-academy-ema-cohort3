@@ -169,6 +169,14 @@ export class FirebaseState {
       this.currentUser.set(profile);
       return profile;
     } catch (error: unknown) {
+      const errCode = (error as { code?: string })?.code;
+      if (
+        errCode === 'auth/popup-closed-by-user' ||
+        errCode === 'auth/cancelled-popup-request'
+      ) {
+        console.info('Google sign-in dialog was dismissed by user.');
+        return null;
+      }
       console.error('Google Sign-In failed:', error);
       const msg =
         error instanceof Error ? error.message : 'Google sign-in was cancelled or failed.';
@@ -191,6 +199,14 @@ export class FirebaseState {
       this.googleAccessToken.set(token);
       return token;
     } catch (err: unknown) {
+      const errCode = (err as { code?: string })?.code;
+      if (
+        errCode === 'auth/popup-closed-by-user' ||
+        errCode === 'auth/cancelled-popup-request'
+      ) {
+        console.info('Google Tasks authorization dialog was dismissed by user.');
+        return null;
+      }
       console.warn('Google Tasks permission was cancelled or not granted:', err);
       return null;
     }

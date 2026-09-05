@@ -67,54 +67,26 @@ const INITIAL_DRAFT: ScribeDraft = {
     PatientProfileModal,
   ],
   template: `
-    <div class="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6">
-      <!-- Mobile Segmented View Switcher (Visible only on < md screens) -->
-      <div class="md:hidden flex rounded-xl bg-stone-200/80 p-1 border border-stone-300/60 mb-1 text-xs font-semibold shrink-0">
-        <button
-          type="button"
-          (click)="mobileTab.set('scribe')"
-          class="flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
-          [class.bg-white]="mobileTab() === 'scribe'"
-          [class.text-stone-900]="mobileTab() === 'scribe'"
-          [class.shadow-xs]="mobileTab() === 'scribe'"
-          [class.text-stone-600]="mobileTab() !== 'scribe'"
-        >
-          <mat-icon class="text-sm">mic</mat-icon>
-          <span>Caregiver Scribe</span>
-        </button>
-        <button
-          type="button"
-          (click)="mobileTab.set('history')"
-          class="flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
-          [class.bg-white]="mobileTab() === 'history'"
-          [class.text-stone-900]="mobileTab() === 'history'"
-          [class.shadow-xs]="mobileTab() === 'history'"
-          [class.text-stone-600]="mobileTab() !== 'history'"
-        >
-          <mat-icon class="text-sm">folder_shared</mat-icon>
-          <span>Clinical Log ({{ clinicalEntries().length }})</span>
-        </button>
-      </div>
-
+    <div class="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-7xl w-full mx-auto p-3.5 sm:p-6 pb-20 md:pb-6 gap-3 sm:gap-6">
       <!-- Left Sidebar: Clinical Journal Log & History -->
       <aside
-        class="w-full md:w-80 md:!flex flex-col shrink-0 bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden h-[520px] md:h-auto"
+        class="w-full md:w-80 md:!flex flex-col shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden h-[calc(100dvh-9.5rem)] md:h-[calc(100vh-5.5rem)] md:sticky md:top-20 min-h-0"
         [class.hidden]="mobileTab() !== 'history'"
       >
         <!-- History Header -->
-        <div class="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-700 text-lg">folder_shared</mat-icon>
+            <mat-icon class="text-emerald-700 text-lg">folder_shared</mat-icon>
             <div>
-              <h2 class="font-bold text-stone-900 text-sm">Clinical Entries</h2>
-              <p class="text-[10px] text-stone-500">{{ clinicalEntries().length }} logged records</p>
+              <h2 class="font-bold text-slate-900 text-sm">Clinical Entries</h2>
+              <p class="text-[10px] text-slate-500">{{ clinicalEntries().length }} logged records</p>
             </div>
           </div>
           <button
             id="btn-new-clinical-entry"
             type="button"
             (click)="startNewScribeSession()"
-            class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-stone-900 text-white hover:bg-stone-800 active:scale-95 transition cursor-pointer shadow-xs"
+            class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 active:scale-95 transition cursor-pointer shadow-xs"
             title="Start new caregiver observation"
           >
             <mat-icon class="text-sm">add</mat-icon>
@@ -123,21 +95,21 @@ const INITIAL_DRAFT: ScribeDraft = {
         </div>
 
         <!-- Search & Filter Controls -->
-        <div class="p-3 border-b border-stone-100 bg-stone-50/40 space-y-2">
+        <div class="p-3 border-b border-slate-100 bg-slate-50/40 space-y-2 shrink-0">
           <div class="relative flex items-center">
-            <mat-icon class="absolute left-2.5 text-stone-400 text-base pointer-events-none">search</mat-icon>
+            <mat-icon class="absolute left-2.5 text-slate-400 text-base pointer-events-none">search</mat-icon>
             <input
               type="text"
               [ngModel]="searchQuery()"
               (ngModelChange)="searchQuery.set($event)"
               placeholder="Search observations, vitals, meds..."
-              class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-200 bg-white text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-teal-600"
+              class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             />
             @if (searchQuery()) {
               <button
                 type="button"
                 (click)="searchQuery.set('')"
-                class="absolute right-2 text-stone-400 hover:text-stone-600 text-xs"
+                class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs"
               >
                 ✕
               </button>
@@ -149,120 +121,125 @@ const INITIAL_DRAFT: ScribeDraft = {
             <button
               type="button"
               (click)="selectedFilter.set('all')"
-              class="px-2 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
-              [class.bg-stone-900]="selectedFilter() === 'all'"
+              class="px-2.5 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
+              [class.bg-slate-900]="selectedFilter() === 'all'"
               [class.text-white]="selectedFilter() === 'all'"
-              [class.border-stone-900]="selectedFilter() === 'all'"
+              [class.border-slate-900]="selectedFilter() === 'all'"
               [class.bg-white]="selectedFilter() !== 'all'"
-              [class.text-stone-600]="selectedFilter() !== 'all'"
-              [class.border-stone-200]="selectedFilter() !== 'all'"
+              [class.text-slate-600]="selectedFilter() !== 'all'"
+              [class.border-slate-200]="selectedFilter() !== 'all'"
             >
               All
             </button>
             <button
               type="button"
               (click)="selectedFilter.set('vitals')"
-              class="px-2 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
-              [class.bg-stone-900]="selectedFilter() === 'vitals'"
+              class="px-2.5 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
+              [class.bg-slate-900]="selectedFilter() === 'vitals'"
               [class.text-white]="selectedFilter() === 'vitals'"
-              [class.border-stone-900]="selectedFilter() === 'vitals'"
+              [class.border-slate-900]="selectedFilter() === 'vitals'"
               [class.bg-white]="selectedFilter() !== 'vitals'"
-              [class.text-stone-600]="selectedFilter() !== 'vitals'"
-              [class.border-stone-200]="selectedFilter() !== 'vitals'"
+              [class.text-slate-600]="selectedFilter() !== 'vitals'"
+              [class.border-slate-200]="selectedFilter() !== 'vitals'"
             >
               Vitals
             </button>
             <button
               type="button"
               (click)="selectedFilter.set('alerts')"
-              class="px-2 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
-              [class.bg-stone-900]="selectedFilter() === 'alerts'"
+              class="px-2.5 py-0.5 rounded-full border transition shrink-0 cursor-pointer"
+              [class.bg-slate-900]="selectedFilter() === 'alerts'"
               [class.text-white]="selectedFilter() === 'alerts'"
-              [class.border-stone-900]="selectedFilter() === 'alerts'"
+              [class.border-slate-900]="selectedFilter() === 'alerts'"
               [class.bg-white]="selectedFilter() !== 'alerts'"
-              [class.text-stone-600]="selectedFilter() !== 'alerts'"
-              [class.border-stone-200]="selectedFilter() !== 'alerts'"
+              [class.text-slate-600]="selectedFilter() !== 'alerts'"
+              [class.border-slate-200]="selectedFilter() !== 'alerts'"
             >
               Alerts
             </button>
           </div>
         </div>
 
-        <!-- Entries List -->
-        <div class="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y divide-stone-50">
-          @if (isLoadingEntries()) {
-            <div class="py-12 flex flex-col items-center justify-center text-stone-400 gap-2">
-              <span class="w-5 h-5 border-2 border-stone-300 border-t-teal-700 rounded-full animate-spin"></span>
-              <span class="text-xs">Loading clinical records...</span>
-            </div>
-          } @else if (filteredEntries().length === 0) {
-            <div class="py-12 text-center text-stone-400 px-4">
-              <mat-icon class="text-3xl text-stone-300 mb-1">note_alt</mat-icon>
-              <p class="text-xs font-medium text-stone-600">No matching entries</p>
-              <p class="text-[11px] text-stone-400 mt-1">
-                Record a voice observation or type a note to begin logging.
-              </p>
-            </div>
-          } @else {
-            @for (entry of filteredEntries(); track entry.id) {
-              <div
-                (click)="selectHistoricalEntry(entry)"
-                class="group p-3 rounded-xl border transition cursor-pointer text-left"
-                [class.border-teal-600]="selectedEntryId() === entry.id"
-                [class.bg-teal-50/40]="selectedEntryId() === entry.id"
-                [class.border-stone-200]="selectedEntryId() !== entry.id"
-                [class.bg-white]="selectedEntryId() !== entry.id"
-                [class.hover:border-stone-300]="selectedEntryId() !== entry.id"
-              >
-                <div class="flex items-center justify-between gap-1 mb-1">
-                  <span class="text-[11px] font-semibold text-stone-700">
-                    {{ entry.createdAt | date:'shortDate' }} • {{ entry.createdAt | date:'shortTime' }}
-                  </span>
-                  @if (entry.safetyAlert) {
-                    <span
-                      class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-                      [class.bg-red-100]="entry.safetyAlert.level === 'urgent'"
-                      [class.text-red-700]="entry.safetyAlert.level === 'urgent'"
-                      [class.bg-amber-100]="entry.safetyAlert.level === 'warning'"
-                      [class.text-amber-800]="entry.safetyAlert.level === 'warning'"
-                    >
-                      {{ entry.safetyAlert.level }}
-                    </span>
-                  }
-                </div>
-
-                <p class="text-xs font-medium text-stone-900 line-clamp-2 leading-snug">
-                  {{ entry.doctorConsultBullet || entry.clinicalSoap.subjective }}
+        <!-- Entries List Container with Visual Scroll Affordance -->
+        <div class="relative flex-1 min-h-0 overflow-hidden">
+          <div class="absolute inset-0 overflow-y-auto overscroll-contain p-2 pb-8 space-y-1.5 touch-pan-y [-webkit-overflow-scrolling:touch]">
+            @if (isLoadingEntries()) {
+              <div class="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
+                <span class="w-5 h-5 border-2 border-slate-300 border-t-emerald-700 rounded-full animate-spin"></span>
+                <span class="text-xs">Loading clinical records...</span>
+              </div>
+            } @else if (filteredEntries().length === 0) {
+              <div class="py-12 text-center text-slate-400 px-4">
+                <mat-icon class="text-3xl text-slate-300 mb-1">note_alt</mat-icon>
+                <p class="text-xs font-medium text-slate-600">No matching entries</p>
+                <p class="text-[11px] text-slate-400 mt-1">
+                  Record a voice observation or type a note to begin logging.
                 </p>
-
-                <!-- Footer Pills -->
-                <div class="mt-2 flex items-center justify-between text-[10px] text-stone-400">
-                  <div class="flex items-center gap-1.5">
-                    @if (entry.extractedMetrics.bloodPressure; as bp) {
-                      @if (bp.systolic && bp.diastolic) {
-                        <span class="text-blue-600 font-medium">
-                          BP {{ bp.systolic }}/{{ bp.diastolic }}
-                        </span>
-                      }
-                    }
-                    @if (entry.extractedMetrics.bloodGlucose) {
-                      <span class="text-amber-600 font-medium">
-                        Gluc {{ entry.extractedMetrics.bloodGlucose }}
+              </div>
+            } @else {
+              @for (entry of filteredEntries(); track entry.id) {
+                <div
+                  (click)="selectHistoricalEntry(entry)"
+                  class="group p-3 rounded-xl border transition cursor-pointer text-left md:active:scale-[0.99] select-none"
+                  [class.border-emerald-600]="selectedEntryId() === entry.id"
+                  [class.bg-emerald-50/50]="selectedEntryId() === entry.id"
+                  [class.border-slate-200/80]="selectedEntryId() !== entry.id"
+                  [class.bg-white]="selectedEntryId() !== entry.id"
+                  [class.hover:border-slate-300]="selectedEntryId() !== entry.id"
+                >
+                  <div class="flex items-center justify-between gap-1 mb-1">
+                    <span class="text-[11px] font-semibold text-slate-700">
+                      {{ entry.createdAt | date:'shortDate' }} • {{ entry.createdAt | date:'shortTime' }}
+                    </span>
+                    @if (entry.safetyAlert) {
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
+                        [class.bg-rose-100]="entry.safetyAlert.level === 'urgent'"
+                        [class.text-rose-700]="entry.safetyAlert.level === 'urgent'"
+                        [class.bg-amber-100]="entry.safetyAlert.level === 'warning'"
+                        [class.text-amber-800]="entry.safetyAlert.level === 'warning'"
+                      >
+                        {{ entry.safetyAlert.level }}
                       </span>
                     }
                   </div>
-                  <button
-                    type="button"
-                    (click)="deleteEntry(entry, $event)"
-                    class="opacity-0 group-hover:opacity-100 p-1 text-stone-400 hover:text-red-600 transition"
-                    title="Delete record"
-                  >
-                    <mat-icon class="text-xs">delete</mat-icon>
-                  </button>
+
+                  <p class="text-xs font-medium text-slate-900 line-clamp-2 leading-snug">
+                    {{ entry.doctorConsultBullet || entry.clinicalSoap.subjective }}
+                  </p>
+
+                  <!-- Footer Pills -->
+                  <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                    <div class="flex items-center gap-1.5">
+                      @if (entry.extractedMetrics.bloodPressure; as bp) {
+                        @if (bp.systolic && bp.diastolic) {
+                          <span class="text-indigo-600 font-medium">
+                            BP {{ bp.systolic }}/{{ bp.diastolic }}
+                          </span>
+                        }
+                      }
+                      @if (entry.extractedMetrics.bloodGlucose) {
+                        <span class="text-amber-700 font-medium">
+                          Gluc {{ entry.extractedMetrics.bloodGlucose }}
+                        </span>
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      (click)="deleteEntry(entry, $event)"
+                      class="opacity-60 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 transition"
+                      title="Delete record"
+                    >
+                      <mat-icon class="text-xs">delete</mat-icon>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              }
             }
-          }
+          </div>
+
+          <!-- Ambient bottom fade indicator -->
+          <div class="pointer-events-none absolute bottom-0 inset-x-0 h-6 bg-gradient-to-t from-white/90 to-transparent"></div>
         </div>
       </aside>
 
@@ -278,21 +255,21 @@ const INITIAL_DRAFT: ScribeDraft = {
           <!-- Caregiver Voice Scribe & SOAP Generator Mode -->
 
           <!-- Patient Baseline Ribbon Banner -->
-          <div class="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 flex items-center justify-center font-bold text-base">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 flex items-center justify-center font-bold text-base">
                 {{ activePatient().name.charAt(0) }}
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-sm sm:text-base font-bold text-stone-900">{{ activePatient().name }}</h2>
-                  <span class="text-xs text-stone-500 font-mono">({{ currentYear - activePatient().birthYear }}y)</span>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-700">
+                  <h2 class="text-sm sm:text-base font-bold text-slate-900">{{ activePatient().name }}</h2>
+                  <span class="text-xs text-slate-500 font-mono">({{ currentYear - activePatient().birthYear }}y)</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
                     Primary Patient
                   </span>
                 </div>
-                <p class="text-xs text-stone-500 mt-0.5">
-                  Chronic: <span class="text-stone-800 font-medium">{{ chronicSummary() }}</span> • Rx: <span class="text-stone-800 font-medium">{{ activePatient().currentMedications.length }} meds</span>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  Chronic: <span class="text-slate-800 font-medium">{{ chronicSummary() }}</span> • Rx: <span class="text-slate-800 font-medium">{{ activePatient().currentMedications.length }} meds</span>
                 </p>
               </div>
             </div>
@@ -300,29 +277,29 @@ const INITIAL_DRAFT: ScribeDraft = {
             <button
               type="button"
               (click)="isProfileModalOpen.set(true)"
-              class="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-50 active:scale-98 text-xs font-medium text-stone-700 transition cursor-pointer"
+              class="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-98 text-xs font-medium text-slate-700 transition cursor-pointer shadow-2xs"
             >
-              <mat-icon class="text-sm text-stone-500">edit_note</mat-icon>
+              <mat-icon class="text-sm text-slate-500">edit_note</mat-icon>
               <span>Edit Baseline Profile</span>
             </button>
           </div>
 
           <!-- Unified Caregiver Scribe & Active Listening Chat Room -->
-          <div class="bg-white rounded-2xl border border-stone-200 shadow-xs flex flex-col overflow-hidden">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
             <!-- Header Bar -->
-            <div class="p-4 sm:p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
               <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-teal-700 text-white flex items-center justify-center shadow-xs">
+                <div class="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs">
                   <mat-icon class="text-lg">forum</mat-icon>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <h3 class="font-bold text-stone-900 text-sm sm:text-base">Caregiver Scribe &amp; Active Listening</h3>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-100 text-teal-800">
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Caregiver Scribe &amp; Active Listening</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200/60">
                       Gemini 3.8 Flash
                     </span>
                   </div>
-                  <p class="text-xs text-stone-500">
+                  <p class="text-xs text-slate-500">
                     {{ draft().conversation.length }} turns logged • Cross-referencing {{ activePatient().name }}'s baseline
                   </p>
                 </div>
@@ -332,7 +309,7 @@ const INITIAL_DRAFT: ScribeDraft = {
                 <button
                   type="button"
                   (click)="startNewScribeSession()"
-                  class="inline-flex items-center gap-1.5 text-xs text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 transition cursor-pointer min-h-[36px]"
+                  class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer min-h-[36px]"
                   title="Start fresh observation session"
                 >
                   <mat-icon class="text-sm">refresh</mat-icon>
@@ -342,14 +319,14 @@ const INITIAL_DRAFT: ScribeDraft = {
             </div>
 
             <!-- Conversation Stream -->
-            <div class="p-4 sm:p-6 space-y-4 max-h-[500px] overflow-y-auto bg-stone-50/30">
+            <div class="p-4 sm:p-6 space-y-4 max-h-[500px] overflow-y-auto bg-[#FAF9F6]/50">
               @if (draft().conversation.length === 0) {
-                <div class="py-10 text-center text-stone-500 max-w-md mx-auto space-y-2">
-                  <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center mx-auto mb-2">
+                <div class="py-10 text-center text-slate-500 max-w-md mx-auto space-y-2">
+                  <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center mx-auto mb-2">
                     <mat-icon class="text-2xl">record_voice_over</mat-icon>
                   </div>
-                  <p class="text-sm font-bold text-stone-800">Caregiver Observation &amp; Scribe Room</p>
-                  <p class="text-xs text-stone-500 leading-relaxed">
+                  <p class="text-sm font-bold text-slate-800">Caregiver Observation &amp; Scribe Room</p>
+                  <p class="text-xs text-slate-500 leading-relaxed">
                     Speak or type how {{ activePatient().name }} is doing. Gemini will listen actively, cross-reference her baseline medications and target vitals, and ask targeted clinical clarifications.
                   </p>
                 </div>
@@ -358,22 +335,22 @@ const INITIAL_DRAFT: ScribeDraft = {
                   @if (turn.role === 'user') {
                     <!-- Caregiver Turn (Right) -->
                     <div class="flex flex-col items-end">
-                      <div class="max-w-xl p-3.5 sm:p-4 rounded-2xl rounded-tr-xs bg-stone-900 text-white shadow-xs space-y-1.5">
-                        <div class="flex items-center justify-between gap-4 text-xs text-stone-300">
+                      <div class="max-w-xl p-3.5 sm:p-4 rounded-2xl rounded-tr-xs bg-slate-900 text-white shadow-xs space-y-1.5">
+                        <div class="flex items-center justify-between gap-4 text-xs text-slate-300">
                           <span class="font-bold flex items-center gap-1">
                             <mat-icon class="text-xs">person</mat-icon>
                             Caregiver Note
                           </span>
                           <span class="font-mono text-[11px] opacity-80">{{ turn.timestamp | date:'shortTime' }}</span>
                         </div>
-                        <p class="text-xs sm:text-sm leading-relaxed text-stone-100 whitespace-pre-wrap">{{ turn.text }}</p>
+                        <p class="text-xs sm:text-sm leading-relaxed text-slate-100 whitespace-pre-wrap">{{ turn.text }}</p>
                       </div>
                     </div>
                   } @else {
                     <!-- Centered Grounded Safety Insight Notice Pill (if interim alert present) -->
                     @if (turn.interimAlert) {
                       <div class="flex justify-center my-1 sm:my-2 w-full animate-in fade-in duration-200">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium shadow-2xs max-w-lg text-center">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200/90 text-amber-900 text-xs font-medium shadow-2xs max-w-lg text-center">
                           <mat-icon class="text-amber-600 text-sm shrink-0">shield</mat-icon>
                           <span><strong class="font-semibold text-amber-950">Safety Insight:</strong> {{ turn.interimAlert }}</span>
                         </div>
@@ -382,29 +359,29 @@ const INITIAL_DRAFT: ScribeDraft = {
 
                     <!-- Gemini Companion Turn (Left) -->
                     <div class="flex flex-col items-start space-y-2.5 max-w-2xl">
-                      <div class="p-4 sm:p-5 rounded-2xl rounded-tl-xs bg-white border border-teal-200 shadow-xs space-y-3">
-                        <div class="flex items-center justify-between gap-4 text-xs text-teal-800 border-b border-teal-100 pb-2">
+                      <div class="p-4 sm:p-5 rounded-2xl rounded-tl-xs bg-white border border-emerald-200/90 shadow-xs space-y-3">
+                        <div class="flex items-center justify-between gap-4 text-xs text-emerald-800 border-b border-emerald-100 pb-2">
                           <span class="font-bold flex items-center gap-1.5">
-                            <mat-icon class="text-sm text-teal-700">smart_toy</mat-icon>
+                            <mat-icon class="text-sm text-emerald-700">smart_toy</mat-icon>
                             EMA Care Companion
                           </span>
-                          <span class="text-teal-600 font-mono text-[11px]">{{ turn.timestamp | date:'shortTime' }}</span>
+                          <span class="text-emerald-600 font-mono text-[11px]">{{ turn.timestamp | date:'shortTime' }}</span>
                         </div>
 
                         <!-- Empathetic Companion / Clarification Text -->
-                        <p class="text-xs sm:text-sm text-stone-900 leading-relaxed font-medium whitespace-pre-wrap">{{ turn.text }}</p>
+                        <p class="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-wrap">{{ turn.text }}</p>
 
                         <!-- Instant Quick-Reply Chips (Generous 44px touch targets) -->
                         @if (isLast && !draft().isFinalized && turn.instantReplies && turn.instantReplies.length > 0) {
-                          <div class="pt-2 border-t border-teal-100 space-y-2">
-                            <span class="text-xs font-bold text-teal-900 block">Quick Answer:</span>
+                          <div class="pt-2 border-t border-emerald-100 space-y-2">
+                            <span class="text-xs font-bold text-emerald-900 block">Quick Answer:</span>
                             <div class="flex items-center gap-2 flex-wrap">
                               @for (reply of turn.instantReplies; track reply) {
                                 <button
                                   type="button"
                                   (click)="sendQuickReply(reply)"
                                   [disabled]="isAnalyzing()"
-                                  class="px-4 py-2 min-h-[44px] rounded-xl bg-teal-50 hover:bg-teal-100 active:scale-95 text-teal-950 border border-teal-300 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs disabled:opacity-50 flex items-center"
+                                  class="px-4 py-2 min-h-[44px] rounded-xl bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-950 border border-emerald-300 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs disabled:opacity-50 flex items-center"
                                 >
                                   {{ reply }}
                                 </button>
@@ -420,10 +397,10 @@ const INITIAL_DRAFT: ScribeDraft = {
 
               <!-- In-Chat Typing / Baseline Cross-Referencing Indicator -->
               @if (isAnalyzing()) {
-                <div class="flex items-start gap-2 text-teal-900 max-w-md animate-pulse">
-                  <div class="p-3.5 rounded-2xl rounded-tl-xs bg-teal-50 border border-teal-200 flex items-center gap-2.5 text-xs sm:text-sm">
-                    <span class="w-4 h-4 border-2 border-teal-700 border-t-transparent rounded-full animate-spin shrink-0"></span>
-                    <span class="font-medium text-teal-900">EMA Scribe is cross-referencing medications &amp; vitals target...</span>
+                <div class="flex items-start gap-2 text-emerald-900 max-w-md animate-pulse">
+                  <div class="p-3.5 rounded-2xl rounded-tl-xs bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs sm:text-sm">
+                    <span class="w-4 h-4 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin shrink-0"></span>
+                    <span class="font-medium text-emerald-900">EMA Scribe is cross-referencing medications &amp; vitals target...</span>
                   </div>
                 </div>
               }
@@ -459,16 +436,16 @@ const INITIAL_DRAFT: ScribeDraft = {
 
               <!-- Compile & Finalize Action Strip -->
               @if (!draft().isFinalized && draft().conversation.length > 0) {
-                <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-100/80 p-3.5 rounded-xl border border-stone-200">
-                  <div class="flex items-center gap-2 text-xs sm:text-sm text-stone-700">
-                    <mat-icon class="text-teal-700 text-base">assignment_turned_in</mat-icon>
+                <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-100/70 p-3.5 rounded-xl border border-slate-200/80">
+                  <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                    <mat-icon class="text-emerald-700 text-base">assignment_turned_in</mat-icon>
                     <span>Sufficient context gathered? Compile structured clinical note.</span>
                   </div>
                   <button
                     type="button"
                     (click)="compileAndFinalizeSoap()"
                     [disabled]="isFinalizing()"
-                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition cursor-pointer shadow-xs shrink-0"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition cursor-pointer shadow-xs shrink-0"
                   >
                     @if (isFinalizing()) {
                       <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -483,15 +460,15 @@ const INITIAL_DRAFT: ScribeDraft = {
             </div>
 
             <!-- Docked Bottom Composer Area -->
-            <div class="p-3 sm:p-5 border-t border-stone-200 bg-white space-y-2.5 sm:space-y-3">
+            <div class="p-3 sm:p-5 border-t border-slate-200 bg-white space-y-2.5 sm:space-y-3">
               <!-- Quick Sparks Row (Common Elderly Scenarios) -->
-              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-xs text-stone-600">
-                <span class="font-semibold text-stone-500 shrink-0 text-[11px] sm:text-xs">Quick Spark:</span>
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden text-xs text-slate-600">
+                <span class="font-semibold text-slate-500 shrink-0 text-[11px] sm:text-xs">Quick Spark:</span>
                 @for (prompt of sparkPrompts; track prompt.label) {
                   <button
                     type="button"
                     (click)="applySparkPrompt(prompt.text)"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-800 shrink-0 transition cursor-pointer border border-stone-200 text-xs font-medium"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 shrink-0 transition cursor-pointer border border-slate-200/70 text-xs font-medium"
                   >
                     {{ prompt.label }}
                   </button>
@@ -508,11 +485,11 @@ const INITIAL_DRAFT: ScribeDraft = {
                   [class.bg-rose-600]="speech.isListening()"
                   [class.text-white]="speech.isListening()"
                   [class.animate-pulse]="speech.isListening()"
-                  [class.bg-stone-100]="!speech.isListening()"
-                  [class.text-stone-700]="!speech.isListening()"
-                  [class.hover:bg-stone-200]="!speech.isListening()"
+                  [class.bg-slate-100]="!speech.isListening()"
+                  [class.text-slate-700]="!speech.isListening()"
+                  [class.hover:bg-slate-200]="!speech.isListening()"
                   [class.border]="!speech.isListening()"
-                  [class.border-stone-200]="!speech.isListening()"
+                  [class.border-slate-200]="!speech.isListening()"
                   [title]="speech.isListening() ? 'Listening... Tap to stop' : 'Tap to dictate observation hands-free'"
                 >
                   <mat-icon class="text-xl sm:text-2xl">{{ speech.isListening() ? 'mic' : 'mic_none' }}</mat-icon>
@@ -527,9 +504,9 @@ const INITIAL_DRAFT: ScribeDraft = {
                     (keydown.meta.enter)="submitObservation()"
                     rows="2"
                     placeholder="Type or speak care observation..."
-                    class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-stone-200 bg-stone-50/40 text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition resize-none leading-relaxed"
+                    class="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-slate-200 bg-slate-50/40 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 transition resize-none leading-relaxed"
                   ></textarea>
-                  <span class="hidden sm:inline-block absolute right-3 bottom-2 text-[10px] text-stone-400 pointer-events-none font-mono">
+                  <span class="hidden sm:inline-block absolute right-3 bottom-2 text-[10px] text-slate-400 pointer-events-none font-mono">
                     Ctrl/Cmd+Enter
                   </span>
                 </div>
@@ -540,7 +517,7 @@ const INITIAL_DRAFT: ScribeDraft = {
                   type="button"
                   (click)="submitObservation()"
                   [disabled]="isAnalyzing() || !observationInput().trim()"
-                  class="h-11 sm:h-12 px-3.5 sm:px-5 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0 min-w-[44px] sm:min-w-[48px]"
+                  class="h-11 sm:h-12 px-3.5 sm:px-5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 active:scale-98 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 shrink-0 min-w-[44px] sm:min-w-[48px]"
                   title="Send observation to EMA"
                 >
                   @if (isAnalyzing()) {
@@ -572,18 +549,18 @@ const INITIAL_DRAFT: ScribeDraft = {
               <!-- Review Mode or Saved Confirmation Banner -->
               <div
                 class="p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                [class.bg-teal-50]="!isReviewMode()"
-                [class.border-teal-200]="!isReviewMode()"
-                [class.text-teal-950]="!isReviewMode()"
-                [class.bg-sky-50]="isReviewMode()"
-                [class.border-sky-200]="isReviewMode()"
-                [class.text-sky-950]="isReviewMode()"
+                [class.bg-emerald-50]="!isReviewMode()"
+                [class.border-emerald-200]="!isReviewMode()"
+                [class.text-emerald-950]="!isReviewMode()"
+                [class.bg-indigo-50]="isReviewMode()"
+                [class.border-indigo-200]="isReviewMode()"
+                [class.text-indigo-950]="isReviewMode()"
               >
                 <div class="flex items-center gap-2.5">
                   <div
                     class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white"
-                    [class.bg-teal-700]="!isReviewMode()"
-                    [class.bg-sky-700]="isReviewMode()"
+                    [class.bg-emerald-700]="!isReviewMode()"
+                    [class.bg-indigo-700]="isReviewMode()"
                   >
                     <mat-icon class="text-sm">{{ isReviewMode() ? 'history' : 'check_circle' }}</mat-icon>
                   </div>
@@ -609,7 +586,7 @@ const INITIAL_DRAFT: ScribeDraft = {
                   <button
                     type="button"
                     (click)="startNewScribeSession()"
-                    class="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
+                    class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
                   >
                     <mat-icon class="text-sm">add_circle</mat-icon>
                     <span>Log New Observation</span>
@@ -618,162 +595,247 @@ const INITIAL_DRAFT: ScribeDraft = {
               </div>
 
               <!-- Main SOAP Card -->
-              <div class="bg-white rounded-2xl border border-stone-200 p-5 sm:p-6 shadow-md space-y-5">
+              <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-5">
                 <!-- Top Banner & Doctor Consult Bullet -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
                       <mat-icon class="text-xl">verified</mat-icon>
                     </div>
                     <div>
-                      <h3 class="font-bold text-stone-900 text-base">Finalized Clinical Note</h3>
-                      <p class="text-xs text-stone-500">Cross-referenced against verified patient profile</p>
+                      <h3 class="font-bold text-slate-900 text-base">Finalized Clinical Note</h3>
+                      <p class="text-xs text-slate-500">Cross-referenced against verified patient profile</p>
                     </div>
                   </div>
 
                   <!-- Extracted Vitals Badges -->
                   <div class="flex items-center gap-2 flex-wrap">
-                  @if (draft().extractedMetrics?.bloodPressure?.systolic) {
-                    <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
-                      BP {{ draft().extractedMetrics?.bloodPressure?.systolic }}/{{ draft().extractedMetrics?.bloodPressure?.diastolic }} mmHg
-                    </span>
-                  }
-                  @if (draft().extractedMetrics?.bloodGlucose) {
-                    <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">
-                      Glucose {{ draft().extractedMetrics?.bloodGlucose }} mmol/L
-                    </span>
-                  }
-                </div>
-              </div>
-
-              <!-- Doctor Handover Consult Bullet Callout -->
-              @if (draft().doctorConsultBullet) {
-                <div class="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-950 text-xs sm:text-sm font-medium">
-                  <span class="font-bold text-teal-800">Doctor Handover Brief:</span> {{ draft().doctorConsultBullet }}
-                </div>
-              }
-
-              <!-- Grounded Medicine Interaction / Adherence Alert -->
-              @if (draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict) {
-                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm space-y-1">
-                  <div class="flex items-center gap-2 font-bold text-rose-800">
-                    <mat-icon class="text-base text-rose-600">report_problem</mat-icon>
-                    <span>Grounded Medicine Conflict / Safety Warning:</span>
+                    @if (draft().extractedMetrics?.bloodPressure?.systolic) {
+                      <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200/80 text-xs font-bold">
+                        BP {{ draft().extractedMetrics?.bloodPressure?.systolic }}/{{ draft().extractedMetrics?.bloodPressure?.diastolic }} mmHg
+                      </span>
+                    }
+                    @if (draft().extractedMetrics?.bloodGlucose) {
+                      <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200/80 text-xs font-bold">
+                        Glucose {{ draft().extractedMetrics?.bloodGlucose }} mmol/L
+                      </span>
+                    }
                   </div>
-                  <p class="leading-relaxed pl-6">{{ draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict }}</p>
                 </div>
-              }
 
-              <!-- Clinical SOAP Grid -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
-                <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
-                  <span class="font-bold text-stone-900 text-xs uppercase tracking-wider block mb-1">Subjective (S)</span>
-                  <p class="text-stone-700 leading-relaxed">{{ draft().clinicalSoap?.subjective }}</p>
-                </div>
-                <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
-                  <span class="font-bold text-stone-900 text-xs uppercase tracking-wider block mb-1">Objective (O)</span>
-                  <p class="text-stone-700 leading-relaxed">{{ draft().clinicalSoap?.objective }}</p>
-                </div>
-                <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
-                  <span class="font-bold text-stone-900 text-xs uppercase tracking-wider block mb-1">Assessment (A)</span>
-                  <p class="text-stone-700 leading-relaxed">{{ draft().clinicalSoap?.assessment }}</p>
-                </div>
-                <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
-                  <span class="font-bold text-stone-900 text-xs uppercase tracking-wider block mb-1">Plan (P)</span>
-                  <p class="text-stone-700 leading-relaxed">{{ draft().clinicalSoap?.plan }}</p>
-                </div>
-              </div>
+                <!-- Doctor Handover Consult Bullet Callout -->
+                @if (draft().doctorConsultBullet) {
+                  <div class="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-emerald-950 text-xs sm:text-sm font-medium">
+                    <span class="font-bold text-emerald-900">Doctor Handover Brief:</span> {{ draft().doctorConsultBullet }}
+                  </div>
+                }
 
-              <!-- Google Tasks Directive Card -->
-              @if (draft().googleTasksDirectives && draft().googleTasksDirectives!.length > 0) {
-                <div class="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <mat-icon class="text-sky-700 text-base">checklist_rtl</mat-icon>
-                      <h4 class="font-bold text-sky-900 text-xs">Actionable Google Tasks Directive</h4>
+                <!-- Grounded Medicine Interaction / Adherence Alert -->
+                @if (draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict) {
+                  <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-xs sm:text-sm space-y-1">
+                    <div class="flex items-center gap-2 font-bold text-rose-800">
+                      <mat-icon class="text-base text-rose-600">report_problem</mat-icon>
+                      <span>Grounded Medicine Conflict / Safety Warning:</span>
                     </div>
-                    <span class="text-[10px] text-sky-700 font-semibold uppercase">Cloud Tasks Integration</span>
+                    <p class="leading-relaxed pl-6">{{ draft().groundedAnalysis?.potentialMedicineInteractionOrConflict || draft().groundedAnalysis?.potentialDrugInteractionOrConflict }}</p>
                   </div>
+                }
 
-                  @for (directive of draft().googleTasksDirectives; track directive.title) {
-                    <div class="flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-sky-100">
-                      <div class="text-xs">
-                        <p class="font-bold text-stone-900">{{ directive.title }}</p>
-                        @if (directive.notes) {
-                          <p class="text-stone-500 text-[11px] mt-0.5">{{ directive.notes }}</p>
+                <!-- Clinical SOAP Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                  <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70">
+                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wider block mb-1">Subjective (S)</span>
+                    <p class="text-slate-700 leading-relaxed">{{ draft().clinicalSoap?.subjective }}</p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70">
+                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wider block mb-1">Objective (O)</span>
+                    <p class="text-slate-700 leading-relaxed">{{ draft().clinicalSoap?.objective }}</p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70">
+                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wider block mb-1">Assessment (A)</span>
+                    <p class="text-slate-700 leading-relaxed">{{ draft().clinicalSoap?.assessment }}</p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70">
+                    <span class="font-bold text-slate-900 text-xs uppercase tracking-wider block mb-1">Plan (P)</span>
+                    <p class="text-slate-700 leading-relaxed">{{ draft().clinicalSoap?.plan }}</p>
+                  </div>
+                </div>
+
+                <!-- Google Tasks Directive Card -->
+                @if (draft().googleTasksDirectives && draft().googleTasksDirectives!.length > 0) {
+                  <div class="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200/70 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <mat-icon class="text-indigo-700 text-base">checklist_rtl</mat-icon>
+                        <h4 class="font-bold text-indigo-900 text-xs">Actionable Google Tasks Directive</h4>
+                      </div>
+                      <span class="text-[10px] text-indigo-700 font-semibold uppercase">Cloud Tasks Integration</span>
+                    </div>
+
+                    @for (directive of draft().googleTasksDirectives; track directive.title) {
+                      <div class="flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-indigo-100">
+                        <div class="text-xs">
+                          <p class="font-bold text-slate-900">{{ directive.title }}</p>
+                          @if (directive.notes) {
+                            <p class="text-slate-500 text-[11px] mt-0.5">{{ directive.notes }}</p>
+                          }
+                        </div>
+
+                        @if (directive.synced) {
+                          @if (directive.isLocalFallback) {
+                            <div
+                              class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 flex items-center gap-1.5 shadow-2xs"
+                              title="Stored in Care Schedule (To sync live to Google Tasks, add your account to GCP Test Users in GCP Console)"
+                            >
+                              <mat-icon class="text-xs text-emerald-700">done_all</mat-icon>
+                              <span>Scheduled in Care Plan</span>
+                            </div>
+                          } @else {
+                            <a
+                              href="https://tasks.google.com/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 flex items-center gap-1.5 transition shadow-2xs"
+                              title="Open Google Tasks in a new tab"
+                            >
+                              <mat-icon class="text-xs text-emerald-700">done</mat-icon>
+                              <span>Synced to Google Tasks</span>
+                              <mat-icon class="text-[11px] text-emerald-600">open_in_new</mat-icon>
+                            </a>
+                          }
+                        } @else {
+                          <button
+                            type="button"
+                            (click)="syncDirectiveToGoogleTasks(directive)"
+                            [disabled]="isSyncingTask()"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 bg-indigo-700 hover:bg-indigo-800 text-white disabled:opacity-50 flex items-center gap-1 shadow-2xs"
+                          >
+                            @if (isSyncingTask()) {
+                              <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                              <span>Syncing...</span>
+                            } @else {
+                              <mat-icon class="text-xs">sync</mat-icon>
+                              <span>Sync to Google Tasks</span>
+                            }
+                          </button>
                         }
                       </div>
+                    }
+                  </div>
+                }
 
-                      @if (directive.synced) {
-                        @if (directive.isLocalFallback) {
-                          <div
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 flex items-center gap-1.5 shadow-2xs"
-                            title="Stored in Care Schedule (To sync live to Google Tasks, add your account to GCP Test Users in GCP Console)"
-                          >
-                            <mat-icon class="text-xs text-emerald-700">done_all</mat-icon>
-                            <span>Scheduled in Care Plan</span>
-                          </div>
-                        } @else {
-                          <a
-                            href="https://tasks.google.com/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 flex items-center gap-1.5 transition shadow-2xs"
-                            title="Open Google Tasks in a new tab"
-                          >
-                            <mat-icon class="text-xs text-emerald-700">done</mat-icon>
-                            <span>Synced to Google Tasks</span>
-                            <mat-icon class="text-[11px] text-emerald-600">open_in_new</mat-icon>
-                          </a>
-                        }
-                      } @else {
-                        <button
-                          type="button"
-                          (click)="syncDirectiveToGoogleTasks(directive)"
-                          [disabled]="isSyncingTask()"
-                          class="px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 bg-sky-700 hover:bg-sky-800 text-white disabled:opacity-50 flex items-center gap-1 shadow-2xs"
-                        >
-                          @if (isSyncingTask()) {
-                            <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span>Syncing...</span>
-                          } @else {
-                            <mat-icon class="text-xs">sync</mat-icon>
-                            <span>Sync to Google Tasks</span>
-                          }
-                        </button>
-                      }
-                    </div>
-                  }
+                <!-- Encrypted Journal Persistence Confirmation & Next Observation Action -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                  <div class="flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                    @if (isSaving()) {
+                      <span class="w-3.5 h-3.5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin"></span>
+                      <span>Encrypting &amp; Persisting to Vault...</span>
+                    } @else {
+                      <mat-icon class="text-base text-emerald-600">cloud_done</mat-icon>
+                      <span>Encrypted &amp; Persisted to Clinical Journal</span>
+                    }
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="startNewScribeSession()"
+                    class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-98 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+                  >
+                    <mat-icon class="text-sm">add_circle</mat-icon>
+                    <span>Log Next Observation</span>
+                  </button>
                 </div>
-              }
-
-              <!-- Encrypted Journal Persistence Confirmation & Next Observation Action -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-stone-100">
-                <div class="flex items-center gap-2 text-xs font-semibold text-teal-800">
-                  @if (isSaving()) {
-                    <span class="w-3.5 h-3.5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></span>
-                    <span>Encrypting &amp; Persisting to Vault...</span>
-                  } @else {
-                    <mat-icon class="text-base text-emerald-600">cloud_done</mat-icon>
-                    <span>Encrypted &amp; Persisted to Clinical Journal</span>
-                  }
-                </div>
-
-                <button
-                  type="button"
-                  (click)="startNewScribeSession()"
-                  class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-98 text-white text-xs font-bold transition cursor-pointer shadow-xs"
-                >
-                  <mat-icon class="text-sm">add_circle</mat-icon>
-                  <span>Log Next Observation</span>
-                </button>
               </div>
             </div>
-          </div>
           }
         }
       </main>
     </div>
+
+    <!-- Mobile Bottom Navigation Bar (Visible only on < md screens) -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-3 py-1.5 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+      <!-- Destination 1: Caregiver Scribe -->
+      <button
+        id="nav-mobile-scribe"
+        type="button"
+        (click)="setMobileDestination('scribe')"
+        class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation"
+        [class.text-emerald-950]="activeMobileDestination() === 'scribe'"
+        [class.text-slate-400]="activeMobileDestination() !== 'scribe'"
+      >
+        <div
+          class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
+          [class.bg-emerald-100/80]="activeMobileDestination() === 'scribe'"
+          [class.text-emerald-800]="activeMobileDestination() === 'scribe'"
+        >
+          <mat-icon class="text-xl">mic</mat-icon>
+        </div>
+        <span
+          class="text-[11px] mt-0.5 tracking-tight"
+          [class.font-bold]="activeMobileDestination() === 'scribe'"
+          [class.font-medium]="activeMobileDestination() !== 'scribe'"
+        >
+          Scribe
+        </span>
+      </button>
+
+      <!-- Destination 2: Clinical Log with Count Badge -->
+      <button
+        id="nav-mobile-history"
+        type="button"
+        (click)="setMobileDestination('history')"
+        class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation"
+        [class.text-emerald-950]="activeMobileDestination() === 'history'"
+        [class.text-slate-400]="activeMobileDestination() !== 'history'"
+      >
+        <div class="relative flex items-center justify-center">
+          <div
+            class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
+            [class.bg-emerald-100/80]="activeMobileDestination() === 'history'"
+            [class.text-emerald-800]="activeMobileDestination() === 'history'"
+          >
+            <mat-icon class="text-xl">folder_shared</mat-icon>
+          </div>
+          @if (clinicalEntries().length > 0) {
+            <span class="absolute -top-1 right-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-800 text-white min-w-[16px] text-center shadow-xs">
+              {{ clinicalEntries().length }}
+            </span>
+          }
+        </div>
+        <span
+          class="text-[11px] mt-0.5 tracking-tight"
+          [class.font-bold]="activeMobileDestination() === 'history'"
+          [class.font-medium]="activeMobileDestination() !== 'history'"
+        >
+          Clinical Log
+        </span>
+      </button>
+
+      <!-- Destination 3: Doctor Handover -->
+      <button
+        id="nav-mobile-handover"
+        type="button"
+        (click)="setMobileDestination('doctor')"
+        class="flex flex-col items-center justify-center flex-1 py-1 px-1 transition cursor-pointer active:scale-95 touch-manipulation"
+        [class.text-indigo-950]="activeMobileDestination() === 'doctor'"
+        [class.text-slate-400]="activeMobileDestination() !== 'doctor'"
+      >
+        <div
+          class="flex items-center justify-center px-4 py-0.5 rounded-full transition"
+          [class.bg-indigo-100/80]="activeMobileDestination() === 'doctor'"
+          [class.text-indigo-800]="activeMobileDestination() === 'doctor'"
+        >
+          <mat-icon class="text-xl">medical_services</mat-icon>
+        </div>
+        <span
+          class="text-[11px] mt-0.5 tracking-tight"
+          [class.font-bold]="activeMobileDestination() === 'doctor'"
+          [class.font-medium]="activeMobileDestination() !== 'doctor'"
+        >
+          Handover
+        </span>
+      </button>
+    </nav>
 
     <!-- Patient Baseline Profile Modal -->
     @if (isProfileModalOpen()) {
@@ -799,6 +861,25 @@ export class Dashboard implements OnInit {
   readonly searchQuery = signal<string>('');
   readonly selectedFilter = signal<'all' | 'vitals' | 'alerts'>('all');
   readonly mobileTab = signal<'scribe' | 'history'>('scribe');
+
+  readonly activeMobileDestination = computed<'scribe' | 'history' | 'doctor'>(() => {
+    if (this.mobileTab() === 'history') {
+      return 'history';
+    }
+    return this.currentRole() === 'doctor' ? 'doctor' : 'scribe';
+  });
+
+  setMobileDestination(dest: 'scribe' | 'history' | 'doctor'): void {
+    if (dest === 'history') {
+      this.mobileTab.set('history');
+    } else if (dest === 'doctor') {
+      this.firebaseState.currentRole.set('doctor');
+      this.mobileTab.set('scribe');
+    } else {
+      this.firebaseState.currentRole.set('caregiver');
+      this.mobileTab.set('scribe');
+    }
+  }
 
   readonly observationInput = signal<string>('');
   readonly isAnalyzing = signal<boolean>(false);
@@ -837,6 +918,12 @@ export class Dashboard implements OnInit {
       if (text) {
         this.observationInput.set(text);
       }
+    });
+
+    // When role changes, ensure mobile tab points to active workspace
+    effect(() => {
+      this.currentRole();
+      this.mobileTab.set('scribe');
     });
   }
 
@@ -904,6 +991,9 @@ export class Dashboard implements OnInit {
   }
 
   startNewScribeSession(): void {
+    if (this.currentRole() === 'doctor') {
+      this.firebaseState.currentRole.set('caregiver');
+    }
     this.mobileTab.set('scribe');
     this.observationInput.set('');
     this.selectedEntryId.set(null);
@@ -914,6 +1004,9 @@ export class Dashboard implements OnInit {
   }
 
   selectHistoricalEntry(entry: ClinicalEntry): void {
+    if (this.currentRole() === 'doctor') {
+      this.firebaseState.currentRole.set('caregiver');
+    }
     this.mobileTab.set('scribe');
     this.selectedEntryId.set(entry.id);
     this.isReviewMode.set(true);

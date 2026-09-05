@@ -31,6 +31,12 @@ const angularApp = new AngularNodeAppEngine({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Set Cross-Origin-Opener-Policy to allow OAuth popup communication without browser blocking
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
 // Gemini SDK initialization helper (lazy/safe)
 let genAIClient: GoogleGenAI | null = null;
 function getGenAI(): GoogleGenAI {
