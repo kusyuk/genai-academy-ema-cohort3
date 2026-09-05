@@ -1,6 +1,22 @@
 import {Injectable, signal} from '@angular/core';
 
 // Declare types for Web Speech API
+interface SpeechRecognitionAlternative {
+  readonly transcript: string;
+  readonly confidence: number;
+}
+
+interface SpeechRecognitionResult {
+  readonly isFinal: boolean;
+  readonly length: number;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
   resultIndex: number;
@@ -40,6 +56,8 @@ export class SpeechService {
   readonly isSupported = signal<boolean>(false);
 
   private recognition: ISpeechRecognition | null = null;
+  private finalTranscript = '';
+  private interimTranscript = '';
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -53,11 +71,32 @@ export class SpeechService {
         this.recognition.lang = 'en-US';
 
         this.recognition.onresult = (event: SpeechRecognitionEvent) => {
-          let currentText = '';
-          for (let i = 0; i < event.results.length; i++) {
-            currentText += event.results[i][0].transcript + ' ';
+          this.interimTranscript = '';
+
+          // Loop starting from event.resultIndex (only process new or updated chunks)
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const result = event.results[i];
+            const transcriptChunk = result[0]?.transcript || '';
+
+            if (result.isFinal) {
+              const trimmed = transcriptChunk.trim();
+              if (trimmed) {
+                // Deduplicate consecutive identical final phrases (common iOS WebKit anomaly)
+                if (!this.finalTranscript.endsWith(trimmed)) {
+                  this.finalTranscript = (this.finalTranscript + ' ' + trimmed).trim();
+                }
+              }
+            } else {
+              // Overwrite interim transcript with latest active hypothesis (DO NOT CONCATENATE)
+              this.interimTranscript = transcriptChunk.trim();
+            }
           }
-          this.transcript.set(currentText.trim());
+
+          const combined = (this.finalTranscript + ' ' + this.interimTranscript)
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          this.transcript.set(combined);
         };
 
         this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -68,6 +107,15 @@ export class SpeechService {
 
         this.recognition.onend = () => {
           this.isListening.set(false);
+          // Promote any pending interim text when engine finishes
+          if (this.interimTranscript) {
+            const trimmed = this.interimTranscript.trim();
+            if (trimmed && !this.finalTranscript.endsWith(trimmed)) {
+              this.finalTranscript = (this.finalTranscript + ' ' + trimmed).trim();
+            }
+            this.interimTranscript = '';
+            this.transcript.set(this.finalTranscript.trim());
+          }
         };
       }
     }
@@ -79,6 +127,8 @@ export class SpeechService {
       return;
     }
     this.errorMessage.set(null);
+    this.finalTranscript = '';
+    this.interimTranscript = '';
     this.transcript.set('');
     try {
       this.recognition.start();
@@ -97,7 +147,19 @@ export class SpeechService {
       }
     }
     this.isListening.set(false);
-    return this.transcript();
+
+    // Promote any trailing interim text to final transcript so zero words are dropped
+    if (this.interimTranscript) {
+      const trimmed = this.interimTranscript.trim();
+      if (trimmed && !this.finalTranscript.endsWith(trimmed)) {
+        this.finalTranscript = (this.finalTranscript + ' ' + trimmed).trim();
+      }
+      this.interimTranscript = '';
+    }
+
+    const fullText = this.finalTranscript.replace(/\s+/g, ' ').trim();
+    this.transcript.set(fullText);
+    return fullText;
   }
 
   toggle(): void {
